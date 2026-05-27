@@ -1,0 +1,25 @@
+{
+  "appId": "com.smartmall.app",
+  "appName": "Smart Mall",
+  "webDir": "www",
+  "server": {
+    "url": "https://smartmall.unaux.com",
+    "cleartext": false,
+    "allowNavigation": [
+      "smartmall.unaux.com",
+      "*.chapa.co",
+      "chapa.co"
+    ]
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": false,
+    "backgroundColor": "#ffffff"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "overrideBackButton": true
+  }
+}
