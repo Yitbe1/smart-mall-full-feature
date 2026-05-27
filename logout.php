@@ -2,7 +2,8 @@
 // Logout handler
 session_start();
 
-// Properly clean up session data before destroying
+// Regenerate and destroy to prevent session fixation
+session_regenerate_id(true);
 session_unset();
 session_destroy();
 

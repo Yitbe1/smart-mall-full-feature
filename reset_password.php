@@ -18,7 +18,7 @@ if (!empty($token)) {
     try {
         $pdo = getDB();
         $stmt = $pdo->prepare("SELECT email, expires_at FROM password_resets WHERE token = :token");
-        $stmt->execute([':token' => $token]);
+        $stmt->execute([':token' => hash('sha256', $token)]);
         $reset = $stmt->fetch();
 
         if ($reset && strtotime($reset['expires_at']) > time()) {

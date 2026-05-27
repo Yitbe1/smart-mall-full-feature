@@ -30,20 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($user) {
                 $token = bin2hex(random_bytes(32));
+                $token_hash = hash('sha256', $token);
                 $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
                 $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (:email, :token, :expires)");
-                $stmt->execute([':email' => $email, ':token' => $token, ':expires' => $expires]);
+                $stmt->execute([':email' => $email, ':token' => $token_hash, ':expires' => $expires]);
 
                 $reset_link = $base_url . '/reset_password.php?token=' . $token;
-                $log_file = sys_get_temp_dir() . '/smartmall_reset_links.txt';
-                @file_put_contents($log_file, date('Y-m-d H:i:s') . " - $email - $reset_link\n", FILE_APPEND);
-                $_SESSION['reset_link'] = $reset_link;
 
                 $to = $email;
                 $subject = 'Smart Mall - Password Reset';
                 $message = "Hello,\n\nYou requested a password reset.\n\nClick this link to reset your password:\n$reset_link\n\nThis link expires in 1 hour.\n\nIf you did not request this, ignore this email.\n\n- Smart Mall Team";
-                $headers = 'From: noreply@smartmall.com';
+                $headers = "From: noreply@smartmall.com\r\nReply-To: noreply@smartmall.com\r\nX-Mailer: PHP/" . phpversion();
                 mail($to, $subject, $message, $headers);
             }
 
@@ -185,13 +183,6 @@ require_once __DIR__ . '/includes/header.php';
             <?php if ($success): ?>
                 <div class="success-box">
                     If an account with that email exists, a password reset link has been sent.
-                    <?php if (isset($_SESSION['reset_link'])): ?>
-                        <br><br><strong>Local test link:</strong><br>
-                        <a href="<?php echo htmlspecialchars($_SESSION['reset_link']); ?>" style="color:#065f46;word-break:break-all;">
-                            <?php echo htmlspecialchars($_SESSION['reset_link']); ?>
-                        </a>
-                        <?php unset($_SESSION['reset_link']); ?>
-                    <?php endif; ?>
                 </div>
                 <div class="auth-footer">
                     <a href="login.php">Back to Login</a>
