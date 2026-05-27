@@ -1672,14 +1672,14 @@ include __DIR__ . '/includes/header.php';
 <div class="container">
     <?php if (isset($_SESSION['success'])): ?>
         <script>
-            document.addEventListener('DOMContentLoaded', () => showToast("<?php echo addslashes($_SESSION['success']); ?>", "success"));
+            document.addEventListener('DOMContentLoaded', () => showToast(<?php echo json_encode($_SESSION['success']); ?>, "success"));
         </script>
         <?php unset($_SESSION['success']); ?>
     <?php endif; ?>
 
     <?php if ($error !== ''): ?>
         <script>
-            document.addEventListener('DOMContentLoaded', () => showToast("<?php echo addslashes($error); ?>", "error"));
+            document.addEventListener('DOMContentLoaded', () => showToast(<?php echo json_encode($error); ?>, "error"));
         </script>
     <?php endif; ?>
 

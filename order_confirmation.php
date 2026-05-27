@@ -51,7 +51,7 @@ elseif ($order['payment_status'] === 'pending' && $order['payment_method'] === '
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . CHAPA_SECRET_KEY],
             CURLOPT_TIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => false
+            CURLOPT_SSL_VERIFYPEER => true
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

@@ -635,7 +635,7 @@ include 'includes/header.php';
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 <?php foreach ($errors as $e): ?>
-                    showToast("<?php echo addslashes($e); ?>", "error");
+                    showToast(<?php echo json_encode($e); ?>, "error");
                 <?php endforeach; ?>
             });
         </script>

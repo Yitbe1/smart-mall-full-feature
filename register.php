@@ -278,7 +278,7 @@ include __DIR__ . '/includes/header.php';
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     <?php foreach ($errors as $error): ?>
-                        showToast("<?php echo addslashes($error); ?>", "error");
+                        showToast(<?php echo json_encode($error); ?>, "error");
                     <?php endforeach; ?>
                 });
             </script>

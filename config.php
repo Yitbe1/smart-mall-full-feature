@@ -31,9 +31,9 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 $_SESSION['last_activity'] = time();
 
 // Regenerate session ID periodically (every 30% of timeout) to prevent fixation
-if (!isset($_SESSION['_regenerated_at']) || (time() - $_SESSION['regenerated_at']) > ($idle_timeout * 0.3)) {
+if (!isset($_SESSION['_regenerated_at']) || (time() - $_SESSION['_regenerated_at']) > ($idle_timeout * 0.3)) {
     session_regenerate_id(true);
-    $_SESSION['regenerated_at'] = time();
+    $_SESSION['_regenerated_at'] = time();
 }
 
 if (session_status() === PHP_SESSION_NONE) {
