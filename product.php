@@ -32,7 +32,8 @@ try {
         $category_name = $cat_stmt->fetchColumn();
     }
 } catch (PDOException $e) {
-    die('Database error: ' . $e->getMessage());
+    error_log('Product page DB error: ' . $e->getMessage());
+    die('An error occurred. Please try again later.');
 }
 include __DIR__ . '/includes/header.php';
 ?>

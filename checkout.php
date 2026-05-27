@@ -242,7 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             exit();
         } catch (PDOException $e) {
             if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-            $errors[] = 'Error placing order: ' . $e->getMessage();
+            error_log('Checkout DB error: ' . $e->getMessage());
+            $errors[] = 'An error occurred while placing your order. Please try again.';
         }
     }
 }

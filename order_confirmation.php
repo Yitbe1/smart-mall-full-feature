@@ -21,6 +21,12 @@ if (!$order) {
     exit();
 }
 
+// Verify user owns this order BEFORE any payment processing
+if (!isset($_SESSION['user_id']) || $order['user_id'] != $_SESSION['user_id']) {
+    header('Location: login.php');
+    exit();
+}
+
 // 🟡 Handle payment states before showing confirmation
 // Skip verification if already paid
 if ($order['payment_status'] === 'paid') {
@@ -179,12 +185,6 @@ if ($order['payment_status'] === 'failed') {
 }
 // ✅ If 'paid' or other status (COD), continue to show confirmation HTML below
 
-// Verify user owns this order
-if (!isset($_SESSION['user_id']) || $order['user_id'] != $_SESSION['user_id']) {
-    header('Location: login.php');
-    exit();
-}
-
 $order_id = (int)$order['order_id'];
 $user_id = $_SESSION['user_id'];
 $order_items = [];
@@ -200,7 +200,8 @@ try {
     $stmt->execute([':order_id' => $order_id]);
     $order_items = $stmt->fetchAll();
 } catch (PDOException $e) {
-    die('Database error: ' . $e->getMessage());
+    error_log('Order Confirmation DB error: ' . $e->getMessage());
+    die('An error occurred loading your order. Please try again.');
 }
 
 include __DIR__ . '/includes/header.php';
