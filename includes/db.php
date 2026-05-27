@@ -2,11 +2,16 @@
 // Database configuration and connection
 // This file handles all database connections using PDO for security
 
-// Database credentials
-$host    = 'localhost'; // Change this if your database is hosted elsewhere
-$db_name = 'smartmall_db';
-$db_user = 'root'; // Change this to your database username in production
-$db_pass = ''; // Change this to your database password in production
+// Database credentials loaded from .env
+$host    = $_ENV['DB_HOST'] ?? 'localhost';
+$db_name = $_ENV['DB_NAME'] ?? 'smartmall_db';
+$db_user = $_ENV['DB_USER'] ?? 'root';
+$db_pass = $_ENV['DB_PASS'] ?? '';
+
+if (empty($db_name) || $db_user === false) {
+    error_log('Smart Mall: Database credentials not configured. Check .env file.');
+    die('A configuration error occurred. Please contact the site administrator.');
+}
 
 // Create DSN (Data Source Name)
 $dsn = 'mysql:host=' . $host . ';dbname=' . $db_name . ';charset=utf8mb4';

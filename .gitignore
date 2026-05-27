@@ -1,0 +1,11 @@
+node_modules/
+vendor/
+.env
+smartmall-app/node_modules/
+smartmall-app/android/.gradle/
+smartmall-app/android/build/
+smartmall-app/android/capacitor-cordova-android-plugins/.gradle/
+smartmall-app/android/capacitor-cordova-android-plugins/build/
+smartmall-app/android/app/build/
+smartmall-app/android/capacitor/build/
+.docs/
