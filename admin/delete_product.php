@@ -46,6 +46,8 @@ try {
             }
         }
 
+        require_once __DIR__ . '/../includes/cache.php';
+        invalidate_cache_pattern('product');
         $_SESSION['success'] = 'Product deleted successfully!';
     } else {
         $_SESSION['error'] = 'Product not found.';

@@ -506,7 +506,7 @@ include __DIR__ . '/includes/header.php';
                         <!-- Image -->
                         <div class="cart-item-image">
                             <?php if (!empty($item['image'])): ?>
-                                <img src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+                                <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
                             <?php else: ?>
                                 📦
                             <?php endif; ?>

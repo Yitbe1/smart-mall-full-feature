@@ -823,7 +823,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="order-item-row">
                     <div class="order-item-image">
                         <?php if (!empty($item['image'])): ?>
-                            <img src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+                            <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
                         <?php else: ?>
                             📦
                         <?php endif; ?>

@@ -16,7 +16,9 @@ try {
     $pdo = getDB();
 
     // Load categories from DB
-    $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+    require_once __DIR__ . '/includes/cache.php';
+
+    $categories = cache_query_results($pdo, "SELECT * FROM categories ORDER BY name", [], 600);
 
     // Build category map by slug
     $cat_map = [];
@@ -60,10 +62,7 @@ try {
         $query .= " ORDER BY p.created_at DESC";
     }
 
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($params);
-
-    $products = $stmt->fetchAll();
+    $products = cache_query_results($pdo, $query, $params, $search_value ? 30 : 120);
 } catch (PDOException $e) {
     error_log("Smart Mall index.php: " . $e->getMessage());
     $error = 'Could not load products. Please try again.';
@@ -1719,7 +1718,7 @@ include __DIR__ . '/includes/header.php';
                             $image = isset($product['image']) && $product['image'] ? '/reference/uploads/' . $product['image'] : '/reference/assets/images/logo-icon.png';
                 ?>
                             <a href="/reference/product.php?product_id=<?php echo $product['product_id']; ?>" class="slider-item">
-                                <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                <img loading="lazy" src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             </a>
                         <?php
                         endforeach;
@@ -1727,12 +1726,12 @@ include __DIR__ . '/includes/header.php';
                         $image_clone = isset($first_product['image']) && $first_product['image'] ? '/reference/uploads/' . $first_product['image'] : '/reference/assets/images/logo-icon.png';
                         ?>
                         <a href="/reference/product.php?product_id=<?php echo $first_product['product_id']; ?>" class="slider-item slider-clone">
-                            <img src="<?php echo htmlspecialchars($image_clone); ?>" alt="<?php echo htmlspecialchars($first_product['name']); ?>">
+                            <img loading="lazy" src="<?php echo htmlspecialchars($image_clone); ?>" alt="<?php echo htmlspecialchars($first_product['name']); ?>">
                         </a>
                 <?php
                     endif;
                 } catch (PDOException $e) {
-                    echo '<div class="slider-item"><img src="/reference/assets/images/logo-icon.png" alt="Smart Mall"></div>';
+                    echo '<div class="slider-item"><img loading="lazy" src="/reference/assets/images/logo-icon.png" alt="Smart Mall"></div>';
                 }
                 ?>
             </div>
@@ -1881,7 +1880,7 @@ include __DIR__ . '/includes/header.php';
                                 <?php endif; ?>
 
                                 <?php if (!empty($product['image'])): ?>
-                                    <img src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                    <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
                                 <?php else: ?>
                                     <span>Product</span>
                                 <?php endif; ?>

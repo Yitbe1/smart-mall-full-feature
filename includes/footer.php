@@ -324,8 +324,8 @@
             <h3>Stay ahead of the curve</h3>
             <p>Join our growing community for exclusive drops and deals.</p>
         </div>
-        <form class="newsletter-form" onsubmit="event.preventDefault(); showToast('Thanks for subscribing!', 'success');">
-            <input type="email" placeholder="Enter your email" required>
+        <form class="newsletter-form" id="newsletter-form">
+            <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit">Subscribe</button>
         </form>
     </div>
@@ -377,7 +377,18 @@
     <div class="footer-bottom">
         &copy; <?php echo date('Y'); ?> Smart Mall.
     </div>
+<script>
+document.getElementById('newsletter-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button');
+    btn.disabled = true; btn.textContent = '...';
+    const formData = new FormData(this);
+    fetch('/reference/subscribe.php', { method: 'POST', body: formData })
+        .then(r => r.json()).then(d => { showToast(d.message, d.success ? 'success' : 'error'); this.querySelector('input').value = ''; })
+        .catch(() => showToast('Connection error. Try again.', 'error'))
+        .finally(() => { btn.disabled = false; btn.textContent = 'Subscribe'; });
+});
+</script>
 </footer>
 </body>
-
 </html>

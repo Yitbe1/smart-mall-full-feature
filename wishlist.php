@@ -92,7 +92,7 @@ include __DIR__ . '/includes/header.php';
                 <?php foreach ($items as $item): ?>
                     <div class="wish-card">
                         <a href="product.php?product_id=<?php echo $item['product_id']; ?>">
-                            <img src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+                            <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($item['image'])); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
                         </a>
                         <div class="wish-card-body">
                             <h3><a href="product.php?product_id=<?php echo $item['product_id']; ?>"><?php echo htmlspecialchars($item['name']); ?></a></h3>

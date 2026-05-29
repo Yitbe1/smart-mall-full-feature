@@ -120,3 +120,25 @@ if ($app_env === 'production') {
 }
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+/**
+ * Output minifier — compresses HTML output in production.
+ * WARNING: Only enable when you've verified it doesn't break your inline JS/CSS.
+ */
+function smartmall_minify_output(string $buffer): string
+{
+    // Remove HTML comments (except IE conditional comments)
+    $buffer = preg_replace('/<!--[^\[].*?-->/s', '', $buffer);
+
+    // Collapse multiple whitespace between tags
+    $buffer = preg_replace('/\s+/', ' ', $buffer);
+
+    // Restore single space between block elements
+    $buffer = preg_replace('/> </', ">\n<", $buffer);
+
+    return trim($buffer);
+}
+
+if ($app_env === 'production') {
+    ob_start('smartmall_minify_output');
+}

@@ -788,7 +788,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="product-gallery-thumbnails">
                     <?php foreach ($gallery_images as $index => $img): ?>
                         <div class="gallery-thumb <?php echo $index === 0 ? 'active' : ''; ?>" onclick="switchMedia('image', '<?php echo htmlspecialchars(get_product_image_url($img)); ?>', this)">
-                            <img src="<?php echo htmlspecialchars(get_product_image_url($img)); ?>" alt="Thumbnail">
+                            <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($img)); ?>" alt="Thumbnail">
                         </div>
                     <?php endforeach; ?>
 
@@ -1165,7 +1165,7 @@ include __DIR__ . '/includes/header.php';
     <span class="lightbox-close" onclick="event.stopPropagation(); closeLightbox()">&times;</span>
     <div class="lightbox-nav lightbox-prev" onclick="event.stopPropagation(); changeLightboxImage(-1)">&#10094;</div>
     <div class="lightbox-nav lightbox-next" onclick="event.stopPropagation(); changeLightboxImage(1)">&#10095;</div>
-    <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+    <img loading="lazy" id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

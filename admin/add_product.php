@@ -333,6 +333,9 @@ $stmt = $pdo->prepare("UPDATE products SET image = '' WHERE product_id = :produc
                     $_SESSION['success'] = 'Product added successfully!';
                 }
 
+                require_once __DIR__ . '/../includes/cache.php';
+                invalidate_cache_pattern('product');
+
                 header('Location: dashboard.php');
                 exit();
             } catch (PDOException $e) {

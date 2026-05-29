@@ -737,7 +737,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                         <?php if (!empty($slide_val)): ?>
                                                             <div class="cat-slide-preview">
                                                                 <div class="cat-slide-thumb">
-                                                                    <img src="<?php echo htmlspecialchars(get_product_image_url($slide_val)); ?>">
+                                                                    <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($slide_val)); ?>">
                                                                 </div>
                                                                 <button type="button" class="btn-delete-slide" onclick="deleteCategorySlide(<?php echo $cat['category_id']; ?>, <?php echo $s; ?>)">Delete</button>
                                                             </div>

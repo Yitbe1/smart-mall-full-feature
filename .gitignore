@@ -12,3 +12,4 @@ logs/
 backups/
 credentials/
 .docs/
+cache/queries/*.cache

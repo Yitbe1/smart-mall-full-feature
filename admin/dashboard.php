@@ -479,7 +479,7 @@ include __DIR__ . '/../includes/header.php';
                             <td data-label="Image">
                                 <div style="width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--bg-light); border: 1px solid var(--border-color); flex-shrink: 0;">
                                     <?php if (!empty($product['image'])): ?>
-                                        <img src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                     <?php else: ?>
                                         <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.65rem; color: #999;">No img</div>
                                     <?php endif; ?>
