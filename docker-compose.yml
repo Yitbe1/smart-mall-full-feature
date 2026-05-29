@@ -1,0 +1,60 @@
+# =============================================================================
+# Smart Mall — Docker Compose
+# Services: web (Apache + PHP 8.2), db (MySQL 8.0)
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # --------------------------------------------------------------------------
+  # Web Server — Apache + PHP 8.2
+  # --------------------------------------------------------------------------
+  web:
+    build: .
+    container_name: smartmall-web
+    ports:
+      - "8080:80"
+    volumes:
+      # Live code sync — changes on host are reflected in the container
+      - .:/var/www/html
+    environment:
+      APP_ENV: development
+      DB_HOST: db
+      DB_NAME: smartmall_db
+      DB_USER: smartmall
+      DB_PASS: smartmall_pass
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+
+  # --------------------------------------------------------------------------
+  # Database — MySQL 8.0
+  # --------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: smartmall-db
+    ports:
+      # Host port 3307 → container 3306 (avoids conflict with host MySQL)
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: smartmall_db
+      MYSQL_USER: smartmall
+      MYSQL_PASSWORD: smartmall_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+# --------------------------------------------------------------------------
+# Persistent storage
+# --------------------------------------------------------------------------
+volumes:
+  db_data:

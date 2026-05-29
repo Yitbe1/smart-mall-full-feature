@@ -1,0 +1,667 @@
+openapi: 3.1.0
+info:
+  title: Smart Mall API
+  version: 1.0.0
+  description: |
+    REST API for the Smart Mall e-commerce platform. Provides endpoints for browsing products,
+    exploring categories, managing orders, and searching inventory.
+
+    Base path: `/api/`
+    All requests and responses use JSON exclusively.
+
+servers:
+  - url: https://smartmall.unaux.com/api/
+    description: Production server
+  - url: http://localhost/reference/api/
+    description: Local development server
+
+tags:
+  - name: Products
+    description: Browse and search products
+  - name: Categories
+    description: View product categories
+  - name: Orders
+    description: Create and retrieve orders
+  - name: API
+    description: API metadata and discovery
+
+paths:
+  /index.php:
+    get:
+      tags:
+        - API
+      summary: List all available endpoints
+      description: Returns a directory of all API endpoints with methods, URLs, and descriptions.
+      operationId: getApiIndex
+      responses:
+        '200':
+          description: Endpoint index with all available routes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api:
+                    type: string
+                    description: API name
+                    example: Smart Mall REST API
+                  version:
+                    type: string
+                    description: API version
+                    example: 1.0.0
+                  base_url:
+                    type: string
+                    description: Dynamically resolved base URL
+                    example: https://smartmall.unaux.com/api
+                  endpoints:
+                    type: object
+                    description: Grouped endpoint listings
+                    example:
+                      products:
+                        list:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/products.php
+                          description: List all products
+                        single:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/products.php?id=X
+                          description: Get a single product
+                      categories:
+                        list:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/categories.php
+                          description: List all categories
+                        single:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/categories.php?id=X
+                          description: Get a single category with its products
+                      orders:
+                        list:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/orders.php?user_id=X
+                          description: Get all orders for a user
+                        single:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/orders.php?id=X
+                          description: Get a single order with its items
+                        create:
+                          method: POST
+                          url: https://smartmall.unaux.com/api/orders.php
+                          description: Create a new order
+                      search:
+                        search:
+                          method: GET
+                          url: https://smartmall.unaux.com/api/search.php?q=keyword
+                          description: Search products by name or description
+
+  /products.php:
+    get:
+      tags:
+        - Products
+      summary: List products or get a single product
+      description: |
+        Returns a list of all products (optionally filtered by category) when called without an `id` parameter.
+        Returns a single product with full details when called with an `id` parameter.
+      operationId: getProducts
+      parameters:
+        - name: id
+          in: query
+          description: Product ID — when provided, returns a single product instead of the list
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 42
+        - name: category_id
+          in: query
+          description: Filter the product list by category (ignored when `id` is present)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 3
+      responses:
+        '200':
+          description: |
+            - Without `id`: array of products (ProductList)
+            - With `id`: a single product object (Product)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ProductList'
+                  - $ref: '#/components/schemas/Product'
+        '404':
+          description: Product with the given `id` was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Product not found
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Database error
+
+  /search.php:
+    get:
+      tags:
+        - Products
+      summary: Search products
+      description: Searches products by name or description using a LIKE query. Returns up to 6 matching results.
+      operationId: searchProducts
+      parameters:
+        - name: q
+          in: query
+          description: Search keyword
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          example: wireless
+      responses:
+        '200':
+          description: Array of matching products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /categories.php:
+    get:
+      tags:
+        - Categories
+      summary: List categories or get a single category with its products
+      description: |
+        Returns a list of all categories when called without an `id` parameter.
+        Returns a single category with an array of its products when called with an `id` parameter.
+      operationId: getCategories
+      parameters:
+        - name: id
+          in: query
+          description: Category ID — when provided, returns the category with its products instead of the category list
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 3
+      responses:
+        '200':
+          description: |
+            - Without `id`: array of categories
+            - With `id`: a single category with nested products array
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+                  - $ref: '#/components/schemas/CategoryWithProducts'
+        '404':
+          description: Category with the given `id` was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Category not found
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders.php:
+    get:
+      tags:
+        - Orders
+      summary: List orders for a user or get a single order with items
+      description: |
+        Returns all orders for a user when called with `user_id`.
+        Returns a single order with its line items when called with `id`.
+        One of `user_id` or `id` is required.
+      operationId: getOrders
+      parameters:
+        - name: id
+          in: query
+          description: Order ID — when provided, returns a single order with its line items
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 15
+        - name: user_id
+          in: query
+          description: User ID — when provided (without `id`), returns all orders for that user
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 7
+      responses:
+        '200':
+          description: |
+            - With `user_id` (without `id`): array of orders
+            - With `id`: a single order with nested items array
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  - $ref: '#/components/schemas/OrderWithItems'
+        '400':
+          description: Missing required parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Missing required parameter: user_id'
+        '404':
+          description: Order with the given `id` was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Order not found
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      description: |
+        Creates a new order for a user with the given line items.
+        Validates user existence, product availability, and stock levels.
+        On success, stock quantities are decremented atomically within a transaction.
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - order_id
+                  - total_price
+                  - status
+                properties:
+                  success:
+                    type: boolean
+                    description: Always true on success
+                    example: true
+                  order_id:
+                    type: integer
+                    description: The newly created order ID
+                    example: 42
+                  total_price:
+                    type: number
+                    format: float
+                    description: Total price of the order
+                    example: 149.99
+                  status:
+                    type: string
+                    description: Initial order status
+                    example: pending
+        '400':
+          description: |
+            Invalid request body (missing or malformed fields), product not found, or insufficient stock.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_fields:
+                  summary: Missing or invalid fields
+                  value:
+                    error: 'Invalid request. Required: user_id (int) and items (array of {product_id, quantity})'
+                insufficient_stock:
+                  summary: Insufficient stock
+                  value:
+                    error: "Insufficient stock for product 'Gaming Mouse' (requested: 10, available: 3)"
+                product_not_found:
+                  summary: Product does not exist
+                  value:
+                    error: 'Product ID 999 not found'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: User not found
+        '405':
+          description: Method not allowed (non-GET/POST request)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Method not allowed
+        '500':
+          description: Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Product:
+      type: object
+      description: A product available for purchase
+      required:
+        - product_id
+        - name
+        - description
+        - price
+        - stock
+        - image
+        - image_url
+        - category_id
+        - category_name
+        - created_at
+      properties:
+        product_id:
+          type: integer
+          description: Unique product identifier
+          example: 12
+        name:
+          type: string
+          description: Product name
+          example: Wireless Bluetooth Headphones
+        description:
+          type: string
+          description: Detailed product description
+          example: High-quality wireless headphones with noise cancellation and 30-hour battery life.
+        price:
+          type: number
+          format: float
+          description: Product price
+          example: 79.99
+        stock:
+          type: integer
+          description: Available quantity in stock
+          example: 45
+        image:
+          type: string
+          nullable: true
+          description: Raw image filename or URL from the database
+          example: headphones-black.jpg
+        image_url:
+          type: string
+          nullable: true
+          description: Resolved absolute image URL path
+          example: /uploads/headphones-black.jpg
+        category_id:
+          type: integer
+          description: Foreign key to the product category
+          example: 3
+        category_name:
+          type: string
+          description: Category display name (from LEFT JOIN)
+          example: Electronics
+        created_at:
+          type: string
+          format: date-time
+          description: Product creation timestamp
+          example: '2026-05-20 14:30:00'
+
+    ProductList:
+      type: array
+      description: List of products
+      items:
+        $ref: '#/components/schemas/Product'
+
+    Category:
+      type: object
+      description: A product category
+      required:
+        - category_id
+        - name
+      properties:
+        category_id:
+          type: integer
+          description: Unique category identifier
+          example: 3
+        name:
+          type: string
+          description: Category display name
+          example: Electronics
+        image1:
+          type: string
+          nullable: true
+          description: Primary category image URL or filename
+          example: /uploads/cat-electronics-1.jpg
+        image2:
+          type: string
+          nullable: true
+          description: Secondary category image URL or filename
+          example: /uploads/cat-electronics-2.jpg
+        image3:
+          type: string
+          nullable: true
+          description: Tertiary category image URL or filename
+          example: /uploads/cat-electronics-3.jpg
+
+    CategoryWithProducts:
+      type: object
+      description: A category with its associated products
+      allOf:
+        - $ref: '#/components/schemas/Category'
+        - type: object
+          required:
+            - products
+          properties:
+            products:
+              type: array
+              description: Products belonging to this category
+              items:
+                type: object
+                required:
+                  - product_id
+                  - name
+                  - description
+                  - price
+                  - stock
+                  - image
+                  - image_url
+                properties:
+                  product_id:
+                    type: integer
+                    description: Unique product identifier
+                    example: 14
+                  name:
+                    type: string
+                    description: Product name
+                    example: Wireless Bluetooth Headphones
+                  description:
+                    type: string
+                    description: Product description
+                    example: High-quality wireless headphones with noise cancellation.
+                  price:
+                    type: number
+                    format: float
+                    description: Product price
+                    example: 79.99
+                  stock:
+                    type: integer
+                    description: Available stock quantity
+                    example: 45
+                  image:
+                    type: string
+                    nullable: true
+                    description: Raw image filename or URL
+                    example: headphones-black.jpg
+                  image_url:
+                    type: string
+                    nullable: true
+                    description: Resolved absolute image URL
+                    example: /uploads/headphones-black.jpg
+
+    Order:
+      type: object
+      description: An order summary (without line items)
+      required:
+        - order_id
+        - user_id
+        - total_price
+        - status
+        - created_at
+      properties:
+        order_id:
+          type: integer
+          description: Unique order identifier
+          example: 15
+        user_id:
+          type: integer
+          description: ID of the user who placed the order
+          example: 7
+        total_price:
+          type: number
+          format: float
+          description: Total monetary value of the order
+          example: 149.99
+        status:
+          type: string
+          description: Current order status
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+          description: Order creation timestamp
+          example: '2026-05-27 10:15:00'
+
+    OrderWithItems:
+      type: object
+      description: A full order including its line items
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          required:
+            - items
+          properties:
+            items:
+              type: array
+              description: Line items in this order
+              items:
+                $ref: '#/components/schemas/OrderItem'
+
+    OrderItem:
+      type: object
+      description: A single line item within an order
+      required:
+        - id
+        - order_id
+        - product_id
+        - quantity
+        - price
+        - product_name
+        - image
+      properties:
+        id:
+          type: integer
+          description: Unique order item identifier
+          example: 87
+        order_id:
+          type: integer
+          description: Foreign key to the parent order
+          example: 15
+        product_id:
+          type: integer
+          description: Foreign key to the product
+          example: 12
+        quantity:
+          type: integer
+          description: Quantity ordered
+          example: 2
+        price:
+          type: number
+          format: float
+          description: Unit price at time of order
+          example: 49.99
+        product_name:
+          type: string
+          description: Product name at time of order (from LEFT JOIN)
+          example: Wireless Bluetooth Headphones
+        image:
+          type: string
+          nullable: true
+          description: Product image filename or URL (from LEFT JOIN)
+          example: headphones-black.jpg
+
+    CreateOrderRequest:
+      type: object
+      description: Request body to create a new order
+      required:
+        - user_id
+        - items
+      properties:
+        user_id:
+          type: integer
+          description: ID of the user placing the order
+          minimum: 1
+          example: 7
+        items:
+          type: array
+          description: Array of products and quantities to order
+          minItems: 1
+          items:
+            type: object
+            required:
+              - product_id
+              - quantity
+            properties:
+              product_id:
+                type: integer
+                description: ID of the product to purchase
+                minimum: 1
+                example: 12
+              quantity:
+                type: integer
+                description: Quantity to purchase
+                minimum: 1
+                example: 2
+
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: Product not found

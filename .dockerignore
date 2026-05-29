@@ -1,0 +1,29 @@
+# =============================================================================
+# Smart Mall — .dockerignore
+# Exclude files from Docker build context to keep images lean
+# =============================================================================
+
+.git/
+.gitignore
+.github/
+.docs/
+
+# Node / frontend tooling (not used by PHP backend)
+node_modules/
+smartmall-app/
+
+# Environment (use Docker Compose env vars instead)
+.env
+
+# Thesis docs (not needed at runtime)
+*.md
+*.pdf
+
+# Caches and logs
+cache/
+logs/
+backups/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
