@@ -1,8 +1,6 @@
 <?php
 // Add/Edit Product Page
-session_start();
-
-require_once '../includes/db.php';
+require_once __DIR__ . '/../config.php';
 
 // Check if user is admin before any HTML output, so redirects work reliably.
 if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {
@@ -348,6 +346,7 @@ $stmt = $pdo->prepare("UPDATE products SET image = '' WHERE product_id = :produc
 
 require_once '../includes/header.php';
 ?>
+<?php include __DIR__ . '/includes/admin_nav.php'; ?>
 
 <style>
     .form-container {

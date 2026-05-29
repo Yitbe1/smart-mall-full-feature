@@ -60,6 +60,7 @@ try {
 }
 include __DIR__ . '/../includes/header.php';
 ?>
+<?php include __DIR__ . '/includes/admin_nav.php'; ?>
 
 <style>
     .orders-table {

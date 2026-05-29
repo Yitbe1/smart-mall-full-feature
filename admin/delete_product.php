@@ -1,8 +1,6 @@
 <?php
 // Delete Product Handler
-session_start();
-
-require_once '../includes/db.php';
+require_once __DIR__ . '/../config.php';
 
 // Check if user is admin
 if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] ?? '') !== 'admin') {

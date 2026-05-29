@@ -9,11 +9,22 @@ if (!defined('SMARTMALL_EXCHANGE_API_URL')) {
     define('SMARTMALL_EXCHANGE_API_URL', 'https://open.er-api.com/v6/latest/USD');
 }
 
+/**
+ * Return the list of supported display currencies.
+ *
+ * @return string[]
+ */
 function smartmall_supported_currencies(): array
 {
     return ['USD', 'ETB'];
 }
 
+/**
+ * Get the user's selected display currency from session.
+ * Falls back to the base currency (USD) if none selected or invalid.
+ *
+ * @return string Currency code (e.g. "USD", "ETB")
+ */
 function smartmall_selected_currency(): string
 {
     if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -24,6 +35,12 @@ function smartmall_selected_currency(): string
     return in_array($currency, smartmall_supported_currencies(), true) ? $currency : SMARTMALL_BASE_CURRENCY;
 }
 
+/**
+ * Persist a currency selection to the user's session.
+ *
+ * @param string $currency Currency code (e.g. "USD", "ETB")
+ * @return void
+ */
 function smartmall_set_selected_currency(string $currency): void
 {
     if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -36,11 +53,22 @@ function smartmall_set_selected_currency(string $currency): void
         : SMARTMALL_BASE_CURRENCY;
 }
 
+/**
+ * Return the filesystem path to the exchange rate cache file.
+ *
+ * @return string
+ */
 function smartmall_exchange_cache_path(): string
 {
     return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'smartmall_exchange_usd.json';
 }
 
+/**
+ * Read cached exchange rate data from disk.
+ * Returns null if the cache file is missing or malformed.
+ *
+ * @return array|null Cached rate data or null
+ */
 function smartmall_read_exchange_cache(): ?array
 {
     $path = smartmall_exchange_cache_path();
@@ -56,6 +84,13 @@ function smartmall_read_exchange_cache(): ?array
     return $data;
 }
 
+/**
+ * Fetch fresh exchange rates from the external API (exchangerate-api.com).
+ * Falls back to file_get_contents if cURL is unavailable.
+ * Caches the result to disk on success.
+ *
+ * @return array|null Rate data or null on failure
+ */
 function smartmall_fetch_exchange_rates(): ?array
 {
     $raw = false;
@@ -110,6 +145,12 @@ function smartmall_fetch_exchange_rates(): ?array
     return $data;
 }
 
+/**
+ * Get exchange rate data with cache-aware fallback.
+ * Returns fresh data if available, then cached (with stale flag), then a fallback with zero rates.
+ *
+ * @return array{base: string, rates: array, fetched_at: int, expires_at: int, provider: string, stale: bool}
+ */
 function smartmall_exchange_data(): array
 {
     $cache = smartmall_read_exchange_cache();
@@ -136,6 +177,12 @@ function smartmall_exchange_data(): array
     ];
 }
 
+/**
+ * Get the exchange rate for a given currency relative to the base currency (USD).
+ *
+ * @param string|null $currency Target currency code (defaults to user's selected currency)
+ * @return float Exchange rate (1.0 for USD)
+ */
 function smartmall_exchange_rate(?string $currency = null): float
 {
     $currency = strtoupper($currency ?? smartmall_selected_currency());
@@ -148,6 +195,13 @@ function smartmall_exchange_rate(?string $currency = null): float
     return $rate > 0 ? $rate : 0.0;
 }
 
+/**
+ * Convert a USD amount to a target currency using the current exchange rate.
+ *
+ * @param float $amountUsd Amount in base currency (USD)
+ * @param string|null $currency Target currency code
+ * @return float Converted amount
+ */
 function smartmall_convert_money(float $amountUsd, ?string $currency = null): float
 {
     $currency = strtoupper($currency ?? smartmall_selected_currency());
@@ -159,6 +213,14 @@ function smartmall_convert_money(float $amountUsd, ?string $currency = null): fl
     return $rate > 0 ? $amountUsd * $rate : $amountUsd;
 }
 
+/**
+ * Format a monetary amount for display with the appropriate currency symbol.
+ * Supports USD ($) and ETB (ETB) formatting with automatic conversion.
+ *
+ * @param float $amountUsd Amount in base currency (USD)
+ * @param string|null $currency Display currency code
+ * @return string Formatted price string (e.g. "$19.99" or "ETB 1,199.40")
+ */
 function smartmall_format_money($amountUsd, ?string $currency = null): string
 {
     $currency = strtoupper($currency ?? smartmall_selected_currency());
@@ -178,6 +240,12 @@ function smartmall_format_money($amountUsd, ?string $currency = null): string
     return '$' . number_format((float)$amountUsd, 2);
 }
 
+/**
+ * Check whether the user's selected currency is a non-USD conversion
+ * with a valid exchange rate available.
+ *
+ * @return bool True if prices are being converted to a non-USD currency
+ */
 function smartmall_currency_is_converted(): bool
 {
     $currency = smartmall_selected_currency();

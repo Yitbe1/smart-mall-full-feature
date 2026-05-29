@@ -11,34 +11,47 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 
 $products = [];
 $stats = [];
+$error = '';
+$search = trim($_GET['search'] ?? '');
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 20;
 
 try {
     $pdo = getDB();
 
-    // Get all products with categories
-    $stmt = $pdo->query("
+    // Get statistics
+    $stats['total_products'] = $pdo->query("SELECT COUNT(*) as total FROM products")->fetch()['total'];
+    $stats['total_stock'] = $pdo->query("SELECT SUM(stock) as total FROM products")->fetch()['total'] ?? 0;
+    $stats['total_orders'] = $pdo->query("SELECT COUNT(*) as total FROM orders")->fetch()['total'];
+    $stats['total_revenue'] = $pdo->query("SELECT SUM(total_price) as total FROM orders")->fetch()['total'] ?? 0;
+    $stats['total_categories'] = $pdo->query("SELECT COUNT(*) as total FROM categories")->fetch()['total'] ?? 0;
+
+    // Search and paginate products
+    $where = '';
+    $params = [];
+    if ($search !== '') {
+        $where = 'WHERE p.name LIKE :search OR c.name LIKE :search2';
+        $params[':search'] = "%$search%";
+        $params[':search2'] = "%$search%";
+    }
+
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM products p LEFT JOIN categories c ON p.category_id = c.category_id $where");
+    $countStmt->execute($params);
+    $totalProducts = (int)$countStmt->fetchColumn();
+    $totalPages = max(1, (int)ceil($totalProducts / $perPage));
+    $page = min($page, $totalPages);
+    $offset = ($page - 1) * $perPage;
+
+    $stmt = $pdo->prepare("
         SELECT p.product_id, p.name, p.price, p.stock, p.created_at, p.image, c.name as category_name
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.category_id
+        $where
         ORDER BY p.created_at DESC
+        LIMIT $perPage OFFSET $offset
     ");
+    $stmt->execute($params);
     $products = $stmt->fetchAll();
-
-    // Get statistics
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM products");
-    $stats['total_products'] = $stmt->fetch()['total'];
-
-    $stmt = $pdo->query("SELECT SUM(stock) as total FROM products");
-    $stats['total_stock'] = $stmt->fetch()['total'] ?? 0;
-
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM orders");
-    $stats['total_orders'] = $stmt->fetch()['total'];
-
-    $stmt = $pdo->query("SELECT SUM(total_price) as total FROM orders");
-    $stats['total_revenue'] = $stmt->fetch()['total'] ?? 0;
-
-    $stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
-    $stats['total_categories'] = $stmt->fetch()['total'] ?? 0;
 } catch (PDOException $e) {
     error_log("Admin dashboard error: " . $e->getMessage());
     $error = "Database error occurred";
@@ -409,18 +422,56 @@ include __DIR__ . '/../includes/header.php';
         .empty-state {
             padding: 1rem;
         }
+    }
 
-        .products-section-title {
-            font-size: 1.1rem;
-        }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.35rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .page-link {
+        padding: 0.5rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .page-link:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--primary-light);
+    }
+
+    .page-link.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
     }
 </style>
+
+<?php include __DIR__ . '/includes/admin_nav.php'; ?>
 
 <div class="container" style="width: min(1300px, calc(100% - 32px));">
     <!-- Admin Header -->
     <div class="admin-header">
         <h2>Admin Dashboard</h2>
-        <a href="add_product.php" class="btn-add">+ New Product</a>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+            <form method="GET" style="display:flex;gap:0.5rem;">
+                <input type="text" name="search" placeholder="Search products..." value="<?php echo htmlspecialchars($search); ?>" style="padding:0.6rem 1rem;border-radius:10px;border:1.5px solid var(--border-color);font-size:0.85rem;background:var(--input-bg);color:var(--text-dark);min-width:200px;">
+                <button type="submit" style="padding:0.6rem 1rem;border-radius:10px;border:none;background:var(--primary-color);color:white;font-weight:600;cursor:pointer;">Search</button>
+                <?php if ($search !== ''): ?>
+                    <a href="dashboard.php" style="padding:0.6rem 1rem;border-radius:10px;border:1.5px solid var(--border-color);color:var(--text-light);text-decoration:none;font-weight:600;font-size:0.85rem;">Clear</a>
+                <?php endif; ?>
+            </form>
+            <a href="add_product.php" class="btn-add">+ New Product</a>
+        </div>
     </div>
 
     <!-- Statistics -->
@@ -504,6 +555,21 @@ include __DIR__ . '/../includes/header.php';
                 </tbody>
             </table>
         </div>
+
+        <?php if ($totalPages > 1): ?>
+            <div class="pagination">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="page-link">Previous</a>
+                <?php endif; ?>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>" class="page-link <?php echo $i === $page ? 'active' : ''; ?>"><?php echo $i; ?></a>
+                <?php endfor; ?>
+                <?php if ($page < $totalPages): ?>
+                    <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="page-link">Next</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
     <?php else: ?>
         <div class="empty-state">
             <h3>No Products Yet</h3>

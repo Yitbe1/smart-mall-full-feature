@@ -32,22 +32,22 @@ try {
 }
 
 /**
- * Return the shared PDO database connection.
- * Uses a global variable set at the bottom of this file.
+ * Return the shared PDO database connection instance.
+ *
+ * @global PDO $pdo
+ * @return PDO
  */
-function getDB()
+function getDB(): PDO
 {
     global $pdo;
     return $pdo;
 }
 
-// ============================================================
-// CSRF Token Helpers
-// Used by all forms to prevent Cross-Site Request Forgery
-// ============================================================
-
 /**
- * Generate a CSRF token for the current session (idempotent).
+ * Generate or retrieve the session CSRF token (idempotent).
+ * Creates a 64-character hex token on first call and stores it in session.
+ *
+ * @return string The CSRF token
  */
 function csrf_token(): string
 {
@@ -61,7 +61,10 @@ function csrf_token(): string
 }
 
 /**
- * Output a hidden CSRF input field for use in forms.
+ * Output a hidden HTML input field containing the CSRF token.
+ * Intended for use inside HTML forms.
+ *
+ * @return void
  */
 function csrf_field(): void
 {
@@ -69,8 +72,11 @@ function csrf_field(): void
 }
 
 /**
- * Verify that the submitted CSRF token matches the session token.
+ * Verify the submitted CSRF token matches the session token.
+ * Uses hash_equals() for timing-safe comparison.
  * Terminates with a 403 response on failure.
+ *
+ * @return void
  */
 function csrf_verify(): void
 {
@@ -87,10 +93,14 @@ function csrf_verify(): void
 }
 
 /**
- * Returns the full URL for a product image.
- * Handles both local filenames and external URLs.
+ * Return the full URL for a product image asset.
+ * Resolves local filenames to the uploads directory and handles admin subfolder prefixing.
+ * Passes through external URLs unchanged.
+ *
+ * @param string $image_path Local filename or full URL
+ * @return string Resolved image URL
  */
-function get_product_image_url($image_path): string
+function get_product_image_url(string $image_path): string
 {
     if (empty($image_path)) {
         return '';
@@ -108,10 +118,14 @@ function get_product_image_url($image_path): string
 }
 
 /**
- * Returns the full URL for a product video.
- * Handles both local filenames and external URLs.
+ * Return the full URL for a product video asset.
+ * Resolves local filenames to the uploads directory with admin subfolder prefixing.
+ * Passes through external URLs unchanged.
+ *
+ * @param string $video_path Local filename or full URL
+ * @return string Resolved video URL
  */
-function get_product_video_url($video_path): string
+function get_product_video_url(string $video_path): string
 {
     if (empty($video_path)) {
         return '';

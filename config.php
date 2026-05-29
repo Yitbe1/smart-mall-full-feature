@@ -14,6 +14,7 @@ if (file_exists($env_file)) {
 }
 
 $app_env = $_ENV['APP_ENV'] ?? 'production';
+define('APP_VERSION', $_ENV['APP_VERSION'] ?? '1.0.0');
 
 /**
  * Production error handler — never expose details to the browser.
@@ -92,6 +93,19 @@ $base_url = $protocol . $host . $subfolder;
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/currency.php';
+
+/**
+ * Generate a cache-busting URL for static assets.
+ * Appends the APP_VERSION as a query parameter to force browser re-fetch on deployment.
+ *
+ * @param string $path Relative asset path (e.g. "/css/app.css")
+ * @return string Path with version query string
+ */
+function asset_url(string $path): string
+{
+    $v = defined('APP_VERSION') ? APP_VERSION : '1';
+    return $path . '?v=' . urlencode($v);
+}
 
 /**
  * Redirect to a given path.
