@@ -1,6 +1,9 @@
-# Deny all direct access to Chapa helper files
+# Deny all direct access to Chapa helper files, except callback.php
 <IfModule mod_authz_core.c>
     Require all denied
+    <FilesMatch "callback\.php$">
+        Require all granted
+    </FilesMatch>
 </IfModule>
 <IfModule !mod_authz_core.c>
     Deny from all

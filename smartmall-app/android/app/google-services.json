@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1003727523085",
+    "project_id": "smart-mall-e087a",
+    "storage_bucket": "smart-mall-e087a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003727523085:android:9a8993bd9031e65e07b444",
+        "android_client_info": {
+          "package_name": "com.smartmall.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRm4e0G2h6u1GX7ndIkq8GdOSQab3oj30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -40,7 +40,8 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
     $stats['total_categories'] = $stmt->fetch()['total'] ?? 0;
 } catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    error_log("Admin dashboard error: " . $e->getMessage());
+    $error = "Database error occurred";
 }
 include __DIR__ . '/../includes/header.php';
 ?>

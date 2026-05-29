@@ -132,16 +132,16 @@ require_once __DIR__ . '/includes/header.php';
     .form-group input {
         width: 100%;
         padding: 0.7rem 0.85rem;
-        border: 1.5px solid var(--border-color);
+        border: 1.5px solid var(--input-border);
         font-size: 0.92rem;
         transition: border-color 0.2s, box-shadow 0.2s;
-        background: var(--bg-light);
+        background: var(--input-bg);
         color: var(--text-dark);
     }
     .form-group input:focus {
         outline: none;
         border-color: var(--primary-color);
-        background: var(--surface);
+        background: var(--input-bg);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
     .form-group input.error {

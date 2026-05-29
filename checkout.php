@@ -1,9 +1,8 @@
 <?php
+require_once __DIR__ . '/config.php';
 // Checkout Page — POST is processed BEFORE header.php to allow header() redirects
+
 $page_title = 'Checkout - Smart Mall';
-
-require_once 'includes/db.php';
-
 
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
@@ -163,7 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                 // 2️⃣ Initialize Chapa
                 require_once __DIR__ . '/chapa_pay/chapa-config.php';
                 $CHAPA_KEY = CHAPA_SECRET_KEY;
-                $DOMAIN    = 'http://localhost/reference/order_confirmation.php';  // For localhost testing
 
                 if (empty($CHAPA_KEY) || $CHAPA_KEY === 'YOUR_CHAPA_SECRET_KEY_HERE') {
                     echo '<div style="padding:40px; font-family:Arial; background:#ffe3e3; border:1px solid #ffb3b3; border-radius:8px;">';
@@ -178,8 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     'currency'     => 'ETB',
                     'email'        => $order_email,
                     'tx_ref'       => $txRef,
-                    'callback_url' => $DOMAIN . '/chapa/callback.php',
-                    'return_url'   => $DOMAIN . '/order_confirmation.php?order_id=' . $order_id,
+                    'callback_url' => $base_url . '/chapa_pay/callback.php',
+                    'return_url'   => $base_url . '/order_confirmation.php?order_id=' . $order_id,
                     'customization' => [
                         'title'       => 'Smart Mall Pay',
                         'description' => 'Order Payment'
@@ -337,9 +335,9 @@ include 'includes/header.php';
     .form-group input,
     .form-group select {
         padding: 0.8rem 1rem;
-        border: 1.5px solid var(--border-color);
+        border: 1.5px solid var(--input-border);
         font-size: 1rem;
-        background: var(--bg-light);
+        background: var(--input-bg);
         color: var(--text-dark);
         transition: border-color 0.2s, box-shadow 0.2s;
     }
@@ -348,7 +346,7 @@ include 'includes/header.php';
     .form-group select:focus {
         outline: none;
         border-color: var(--primary-color);
-        background: var(--surface);
+        background: var(--input-bg);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 

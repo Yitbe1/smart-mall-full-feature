@@ -70,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
             }
         } catch (PDOException $e) {
-            $error = "Error deleting category slide: " . $e->getMessage();
+            error_log("Admin categories error (delete slide): " . $e->getMessage());
+            $error = "Error deleting category slide. Please try again.";
         }
     }
 }
@@ -104,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
             ]);
             $success = "Category '$name' added successfully!";
         } catch (PDOException $e) {
-            $error = "Error adding category: " . $e->getMessage();
+            error_log("Admin categories error (add): " . $e->getMessage());
+            $error = "Error adding category. Please try again.";
         }
     }
 }
@@ -141,7 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
         ]);
         $success = "Category updated successfully!";
     } catch (PDOException $e) {
-        $error = "Error updating category: " . $e->getMessage();
+        error_log("Admin categories error (update): " . $e->getMessage());
+        $error = "Error updating category. Please try again.";
     }
 }
 
@@ -162,14 +165,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
             $success = "Category deleted successfully!";
         }
     } catch (PDOException $e) {
-        $error = "Error deleting category: " . $e->getMessage();
+        error_log("Admin categories error (delete): " . $e->getMessage());
+        $error = "Error deleting category. Please try again.";
     }
 }
 
 try {
     $categories = getDB()->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
 } catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    error_log("Admin categories error: " . $e->getMessage());
+    $error = "Database error. Please try again.";
 }
 require_once __DIR__ . '/../includes/header.php';
 ?>

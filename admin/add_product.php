@@ -39,7 +39,8 @@ $stmt = $pdo->prepare("SELECT * FROM products WHERE product_id = :product_id");
         $is_edit = true;
         $page_title = 'Edit Product - Smart Mall';
     } catch (PDOException $e) {
-        $errors[] = "Database error: " . $e->getMessage();
+        error_log("Admin add_product error (fetch product): " . $e->getMessage());
+        $errors[] = "Database error occurred.";
     }
 }
 
@@ -140,7 +141,8 @@ $stmt = $pdo->prepare("UPDATE products SET image = '' WHERE product_id = :produc
             header("Location: add_product.php?product_id=" . $product_id);
             exit();
         } catch (PDOException $e) {
-            $errors[] = "Error deleting media: " . $e->getMessage();
+            error_log("Admin add_product error (delete media): " . $e->getMessage());
+            $errors[] = "Error deleting media. Please try again.";
         }
     } else {
         // Standard Add/Edit Save Flow
@@ -331,7 +333,8 @@ $stmt = $pdo->prepare("UPDATE products SET image = '' WHERE product_id = :produc
                 header('Location: dashboard.php');
                 exit();
             } catch (PDOException $e) {
-                $errors['database'] = 'Database error: ' . $e->getMessage();
+                error_log("Admin add_product error (save): " . $e->getMessage());
+                $errors['database'] = 'Database error occurred. Please try again.';
             }
         }
     }

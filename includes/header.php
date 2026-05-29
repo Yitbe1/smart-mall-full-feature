@@ -66,7 +66,9 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
             --text-light: #64748b;
             --bg-light: #f8fafc;
             --surface: #ffffff;
-            --border-color: #f1f5f9;
+            --border-color: #e2e8f0;
+            --input-border: #cbd5e1;
+            --input-bg: #ffffff;
             --success-color: #10b981;
             --danger-color: #ef4444;
             --warning-color: #f59e0b;
@@ -103,6 +105,8 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
             --bg-light: #020617;
             --surface: #0f172a;
             --border-color: #1e293b;
+            --input-border: #475569;
+            --input-bg: #0f172a;
             --nav-bg: rgba(15, 23, 42, 0.96);
             --nav-border: rgba(30, 41, 59, 0.9);
             --footer-bg: #020617;

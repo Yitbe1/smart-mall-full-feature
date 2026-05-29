@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $stmt->execute([':status' => $new_status, ':order_id' => $order_id]);
         $success = "Order #$order_id status updated to $new_status";
     } catch (PDOException $e) {
-        $error = "Error updating status: " . $e->getMessage();
+        error_log("Admin manage_orders error (status update): " . $e->getMessage());
+        $error = "Error updating order status. Please try again.";
     }
 }
 
@@ -54,7 +55,8 @@ try {
     ");
     $orders = $stmt->fetchAll();
 } catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    error_log("Admin manage_orders error: " . $e->getMessage());
+    $error = "Database error. Please try again.";
 }
 include __DIR__ . '/../includes/header.php';
 ?>

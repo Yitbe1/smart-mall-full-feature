@@ -208,40 +208,44 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <style>
+    html { overflow-x: hidden; }
+
+    /* ── Base: < 480px (small mobile) ── */
     .confirmation-container {
-        max-width: 900px;
-        margin: 3rem auto;
+        width: 100%;
+        max-width: 960px;
+        margin: 1rem auto 0;
         background: var(--surface);
-        padding: 3rem;
+        padding: 1rem;
         border-radius: var(--radius);
         box-shadow: var(--shadow-xl);
     }
 
     .confirmation-header {
         text-align: center;
-        margin-bottom: 2rem;
-        padding-bottom: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
         border-bottom: 2px solid var(--primary-color);
     }
 
     .success-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .confirmation-header h1 {
         color: var(--success-color);
         font-family: 'Outfit', sans-serif;
-        font-size: 2.8rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.35rem;
     }
 
     .order-number {
         font-family: 'Outfit', sans-serif;
-        font-size: 1.5rem;
+        font-size: 0.85rem;
         color: var(--text-light);
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.35rem;
     }
 
     .order-number strong {
@@ -251,136 +255,134 @@ include __DIR__ . '/includes/header.php';
 
     .confirmation-message {
         color: var(--text-light);
-        font-size: 1rem;
-        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.75rem;
     }
 
     .order-info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin: 2rem 0;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        margin: 0.75rem 0;
     }
 
     .info-box {
-        padding: 1.5rem;
+        padding: 0.75rem;
         background-color: var(--bg-light);
         border-radius: 8px;
         border-left: 4px solid var(--primary-color);
     }
 
     .info-box h4 {
-        color: var(--text-dark);
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .info-box p {
-        color: var(--secondary-color);
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .order-items-section {
-        margin: 2rem 0;
-    }
-
-    .order-items-section h3 {
-        color: var(--secondary-color);
-        font-family: 'Outfit', sans-serif;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-
-    .info-box h4 {
         color: var(--text-light);
         font-family: 'Outfit', sans-serif;
-        margin-bottom: 0.5rem;
-        font-size: 0.85rem;
+        margin-bottom: 0.35rem;
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         font-weight: 800;
     }
 
+    .info-box p,
+    .info-box div {
+        font-size: 0.8rem !important;
+        line-height: 1.4;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .order-items-section {
+        margin: 0.75rem 0;
+    }
+
+    .order-items-section h3 {
+        color: var(--secondary-color);
+        font-family: 'Outfit', sans-serif;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
     .order-item-row {
         display: grid;
-        grid-template-columns: 80px 1fr auto;
-        gap: 1.5rem;
-        padding: 1rem;
+        grid-template-columns: 40px 1fr;
+        gap: 0.5rem;
+        padding: 0.5rem;
         border-bottom: 1px solid var(--border-color);
         align-items: center;
     }
 
-    .order-item-row:last-child {
-        border-bottom: none;
-    }
+    .order-item-row:last-child { border-bottom: none; }
 
     .order-item-image {
-        width: 80px;
-        height: 80px;
+        width: 40px;
+        height: 40px;
         background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 1rem;
         color: white;
         overflow: hidden;
     }
 
-    .order-item-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+    .order-item-image img { width: 100%; height: 100%; object-fit: cover; }
 
     .order-item-details h4 {
         color: var(--text-dark);
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.15rem;
+        font-size: 0.8rem;
     }
 
     .order-item-details p {
         color: var(--text-light);
-        font-size: 0.9rem;
+        font-size: 0.75rem;
     }
 
     .order-item-price {
-        text-align: right;
+        grid-column: 1 / -1;
+        text-align: left;
+        margin-left: 40px;
         font-weight: 600;
         color: var(--primary-color);
+        font-size: 0.8rem;
+        padding-top: 0.15rem;
     }
 
     .order-total {
         display: flex;
-        justify-content: flex-end;
-        gap: 3rem;
-        padding: 1.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
         background-color: var(--bg-light);
         border-radius: 8px;
         margin-top: 1rem;
+        text-align: right;
     }
 
     .total-row {
         display: flex;
-        gap: 2rem;
+        width: 100%;
+        gap: 0.75rem;
         align-items: center;
+        justify-content: space-between;
     }
 
     .total-row.grand {
-        border-left: 2px solid var(--primary-color);
-        padding-left: 2rem;
+        border-top: 2px solid var(--primary-color);
+        padding-top: 0.5rem;
+        margin-top: 0.25rem;
     }
 
     .total-row span:first-child {
         color: var(--text-light);
-        min-width: 80px;
+        min-width: 50px;
+        font-size: 0.75rem;
     }
 
     .total-row span:last-child {
-        font-size: 1.3rem;
+        font-size: 0.85rem;
         font-weight: bold;
         color: var(--primary-color);
     }
@@ -388,9 +390,9 @@ include __DIR__ . '/includes/header.php';
     .next-steps {
         background-color: var(--surface);
         border-left: 4px solid var(--primary-color);
-        padding: 1.5rem;
+        padding: 0.75rem;
         border-radius: 8px;
-        margin: 2rem 0;
+        margin: 0.75rem 0;
         transition: padding 0.3s ease;
     }
 
@@ -398,7 +400,7 @@ include __DIR__ . '/includes/header.php';
         display: flex;
         justify-content: space-between;
         align-items: center;
-        cursor: default;
+        cursor: pointer;
     }
 
     .next-steps-header .steps-toggle {
@@ -409,79 +411,49 @@ include __DIR__ . '/includes/header.php';
 
     .next-steps-body {
         overflow: hidden;
+        max-height: 500px;
         transition: max-height 0.35s ease, padding 0.35s ease;
     }
 
-    @media (max-width: 480px) {
-        .container {
-            padding-bottom: 0.5rem;
-        }
+    .next-steps.collapsed .next-steps-body {
+        max-height: 0;
+        padding: 0;
     }
 
-    @media (max-width: 768px) {
-        .next-steps-header {
-            cursor: pointer;
-        }
-
-        .next-steps-body {
-            max-height: 500px;
-        }
-
-        .next-steps.collapsed .next-steps-body {
-            max-height: 0;
-            padding: 0;
-        }
-
-        .next-steps.collapsed .steps-toggle {
-            transform: rotate(-90deg);
-        }
-    }
+    .next-steps.collapsed .steps-toggle { transform: rotate(-90deg); }
 
     .next-steps h4 {
         color: var(--secondary-color);
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
     }
 
     .next-steps ol {
         list-style-position: inside;
         color: var(--text-light);
-        line-height: 1.8;
+        line-height: 1.5;
+        font-size: 0.78rem;
     }
 
-    .next-steps li {
-        margin-bottom: 0.5rem;
-    }
+    .next-steps li { margin-bottom: 0.3rem; }
 
     .action-buttons {
         display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin: 2rem 0;
-        justify-content: center;
-    }
-
-    @media (max-width: 480px) {
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .btn-action {
-            width: 100%;
-            text-align: center;
-        }
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 1rem 0;
     }
 
     .btn-action {
-        padding: 0.9rem 2rem;
+        padding: 0.6rem 1rem;
         border: none;
         border-radius: 5px;
         font-weight: 600;
+        font-size: 0.82rem;
         cursor: pointer;
         text-decoration: none;
         text-align: center;
         transition: all 0.3s ease;
-        flex: 1;
-        min-width: 200px;
     }
 
     .btn-action.primary {
@@ -491,7 +463,7 @@ include __DIR__ . '/includes/header.php';
 
     .btn-action.primary:hover {
         background-color: var(--primary-dark);
-        transform: translateY(-5px);
+        transform: translateY(-2px);
     }
 
     .btn-action.secondary {
@@ -501,223 +473,308 @@ include __DIR__ . '/includes/header.php';
 
     .btn-action.secondary:hover {
         background-color: var(--primary-dark);
-        transform: translateY(-5px);
-    }
-
-    @media (max-width: 768px) {
-        .confirmation-container {
-            padding: 1.5rem;
-        }
-
-        .confirmation-header h1 {
-            font-size: 1.8rem;
-        }
-
-        .order-item-row {
-            grid-template-columns: 70px 1fr;
-            gap: 1rem;
-        }
-
-        .order-item-price {
-            grid-column: 1 / -1;
-            text-align: left;
-            margin-left: 70px;
-        }
-
-        .order-total {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: right;
-        }
-
-        .total-row {
-            width: 100%;
-            justify-content: space-between;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .btn-action {
-            min-width: unset;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .confirmation-container {
-            padding: 1rem;
-            margin: 1rem auto 0;
-        }
-
-        .confirmation-header {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-        }
-
-        .success-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .confirmation-header h1 {
-            font-size: 1.25rem;
-        }
-
-        .order-number {
-            font-size: 0.85rem;
-        }
-
-        .confirmation-message {
-            font-size: 0.8rem;
-        }
-
-        .order-info-grid {
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-            margin: 0.75rem 0;
-        }
-
-        .info-box {
-            padding: 0.75rem;
-            border-left-width: 3px;
-        }
-
-        .info-box h4 {
-            font-size: 0.7rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .info-box p,
-        .info-box div {
-            font-size: 0.8rem !important;
-            line-height: 1.4;
-        }
-
-        .order-items-section {
-            margin: 0.75rem 0;
-        }
-
-        .order-items-section h3 {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .order-item-row {
-            grid-template-columns: 40px 1fr;
-            gap: 0.5rem;
-            padding: 0.5rem;
-        }
-
-        .order-item-image {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-
-        .order-item-details h4 {
-            font-size: 0.8rem;
-            margin-bottom: 0.15rem;
-        }
-
-        .order-item-details p {
-            font-size: 0.75rem;
-        }
-
-        .order-item-price {
-            font-size: 0.8rem;
-            margin-left: 40px;
-            padding-top: 0.15rem;
-        }
-
-        .order-total {
-            padding: 0.75rem;
-            gap: 0.35rem;
-        }
-
-        .total-row {
-            gap: 0.75rem;
-        }
-
-        .total-row span:first-child {
-            font-size: 0.75rem;
-            min-width: 50px;
-        }
-
-        .total-row span:last-child {
-            font-size: 0.85rem;
-        }
-
-        .total-row.grand {
-            padding-left: 0.75rem;
-        }
-
-        .next-steps {
-            padding: 0.75rem;
-            margin: 0.75rem 0;
-        }
-
-        .next-steps h4 {
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .next-steps ol {
-            font-size: 0.78rem;
-            line-height: 1.5;
-        }
-
-        .next-steps li {
-            margin-bottom: 0.3rem;
-        }
-
-        .action-buttons {
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-
-        .btn-action {
-            padding: 0.6rem 1rem;
-            font-size: 0.82rem;
-        }
+        transform: translateY(-2px);
     }
 
     .payment-status-box {
         text-align: center;
-        padding: 50px;
+        padding: 2rem 1.25rem;
         font-family: Arial;
         border-radius: 8px;
-        max-width: 600px;
-        margin: 50px auto;
+        max-width: none;
+        margin: 2rem auto;
     }
 
-    .payment-status-box.pending {
-        background: #e3f2fd;
+    .payment-status-box.pending { background: #e3f2fd; }
+    .payment-status-box.failed { background: #ffebee; }
+
+    .payment-status-box h2 { font-size: 1.3rem; }
+    .payment-status-box p { font-size: 0.9rem; }
+    .payment-status-box a {
+        font-size: 0.9rem;
+        padding: 0.65rem 1.25rem;
     }
 
-    .payment-status-box.failed {
-        background: #ffebee;
+    .container { padding-bottom: 0.5rem; }
+
+    /* ── 480px+ (large phone / tablet portrait) ── */
+    @media (min-width: 480px) {
+        .confirmation-container {
+            padding: 1.25rem;
+            margin: 1.25rem auto 0;
+        }
+
+        .confirmation-header h1 { font-size: 1.5rem; }
+
+        .order-number { font-size: 0.95rem; }
+
+        .confirmation-message { font-size: 0.85rem; }
+
+        .order-info-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .order-item-row {
+            grid-template-columns: 50px 1fr auto;
+            gap: 0.75rem;
+            padding: 0.6rem;
+        }
+
+        .order-item-image { width: 50px; height: 50px; }
+
+        .order-item-price {
+            grid-column: auto;
+            text-align: right;
+            margin-left: 0;
+            padding-top: 0;
+        }
+
+        .next-steps-header { cursor: pointer; }
+
+        .next-steps.collapsed .next-steps-body {
+            max-height: 0;
+            padding: 0;
+        }
+
+        .next-steps.collapsed .steps-toggle { transform: rotate(-90deg); }
+
+        .action-buttons { flex-direction: column; }
+
+        .btn-action { font-size: 0.85rem; }
     }
 
-    @media (max-width: 480px) {
-        .payment-status-box {
-            padding: 2rem 1.25rem;
+    /* ── 768px+ (tablet landscape / small desktop) ── */
+    @media (min-width: 768px) {
+        .confirmation-container {
+            padding: 1.5rem;
+            margin: 1.5rem auto;
+        }
+
+        .confirmation-header {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+        }
+
+        .confirmation-header h1 { font-size: 2rem; }
+        .order-number { font-size: 1.15rem; }
+        .confirmation-message { font-size: 0.92rem; }
+
+        .success-icon { font-size: 2.2rem; margin-bottom: 0.6rem; }
+
+        .order-info-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .info-box { padding: 1rem; }
+        .info-box h4 { font-size: 0.78rem; }
+        .info-box p, .info-box div { font-size: 0.88rem !important; }
+
+        .order-items-section { margin: 1.25rem 0; }
+        .order-items-section h3 { font-size: 1.2rem; }
+
+        .order-item-row {
+            grid-template-columns: 65px 1fr auto;
+            gap: 1rem;
+            padding: 0.8rem;
+        }
+
+        .order-item-image { width: 65px; height: 65px; font-size: 1.5rem; }
+        .order-item-details h4 { font-size: 0.95rem; }
+        .order-item-details p { font-size: 0.85rem; }
+        .order-item-price { font-size: 0.95rem; }
+
+        .order-total {
+            flex-direction: row;
+            justify-content: flex-end;
+            gap: 3rem;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        .total-row {
+            width: auto;
+            gap: 2rem;
+            justify-content: flex-start;
+        }
+        .total-row.grand {
+            border-top: none;
+            border-left: 2px solid var(--primary-color);
+            padding-left: 2rem;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .total-row span:first-child { font-size: 1rem; min-width: 80px; }
+        .total-row span:last-child { font-size: 1.3rem; }
+
+        .next-steps {
+            padding: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .next-steps-header { cursor: default; }
+
+        .next-steps-body { max-height: none !important; padding: 0 !important; }
+
+        .next-steps.collapsed .next-steps-body {
+            max-height: none !important;
+            padding: 0 !important;
+        }
+
+        .next-steps.collapsed .steps-toggle { transform: none !important; }
+
+        .next-steps h4 { font-size: 0.95rem; }
+        .next-steps ol { font-size: 0.85rem; line-height: 1.7; }
+
+        .action-buttons {
+            flex-direction: row;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .btn-action {
+            flex: 1;
+            min-width: 180px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* ── 1024px+ (desktop) ── */
+    @media (min-width: 1024px) {
+        .confirmation-container {
+            padding: 2rem 2.5rem;
             margin: 2rem auto;
-            max-width: none;
         }
 
-        .payment-status-box h2 {
-            font-size: 1.3rem;
+        .confirmation-header {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.75rem;
         }
 
-        .payment-status-box p {
-            font-size: 0.9rem;
+        .confirmation-header h1 { font-size: 2.4rem; }
+        .order-number { font-size: 1.3rem; }
+        .confirmation-message { font-size: 0.98rem; }
+
+        .success-icon { font-size: 2.8rem; }
+
+        .order-info-grid {
+            gap: 1.25rem;
+            margin: 1.75rem 0;
         }
 
-        .payment-status-box a {
-            font-size: 0.9rem;
-            padding: 0.65rem 1.25rem;
+        .info-box { padding: 1.25rem; }
+        .info-box h4 { font-size: 0.82rem; }
+        .info-box p, .info-box div { font-size: 0.95rem !important; }
+
+        .order-item-image { width: 80px; height: 80px; font-size: 1.8rem; }
+        .order-item-details h4 { font-size: 1rem; }
+        .order-item-details p { font-size: 0.9rem; }
+        .order-item-price { font-size: 1rem; }
+
+        .order-total { gap: 3.5rem; padding: 1.75rem; }
+        .total-row { gap: 2.25rem; }
+        .total-row.grand { padding-left: 2.25rem; }
+        .total-row span:first-child { font-size: 1.05rem; min-width: 90px; }
+        .total-row span:last-child { font-size: 1.4rem; }
+
+        .next-steps {
+            padding: 1.25rem;
+            margin: 1.75rem 0;
         }
+
+        .next-steps h4 { font-size: 1rem; }
+        .next-steps ol { font-size: 0.9rem; }
+
+        .action-buttons { gap: 1rem; margin: 1.75rem 0; }
+
+        .btn-action {
+            min-width: 200px;
+            padding: 0.85rem 1.75rem;
+            font-size: 0.95rem;
+        }
+
+        .btn-action.primary:hover { transform: translateY(-3px); }
+        .btn-action.secondary:hover { transform: translateY(-3px); }
+    }
+
+    /* ── 1440px+ (large desktop / smart TV) ── */
+    @media (min-width: 1440px) {
+        .confirmation-container {
+            max-width: 1100px;
+            padding: 3rem 3.5rem;
+            margin: 3rem auto;
+        }
+
+        .confirmation-header {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .confirmation-header h1 { font-size: 3rem; }
+        .order-number { font-size: 1.5rem; }
+        .confirmation-message { font-size: 1.05rem; }
+
+        .success-icon { font-size: 3.5rem; margin-bottom: 0.8rem; }
+
+        .order-info-grid {
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-box { padding: 1.5rem; }
+        .info-box h4 { font-size: 0.88rem; }
+        .info-box p, .info-box div { font-size: 1rem !important; }
+
+        .order-items-section { margin: 2rem 0; }
+        .order-items-section h3 { font-size: 1.4rem; }
+
+        .order-item-row {
+            grid-template-columns: 90px 1fr auto;
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .order-item-image { width: 90px; height: 90px; font-size: 2rem; }
+        .order-item-details h4 { font-size: 1.05rem; margin-bottom: 0.3rem; }
+        .order-item-details p { font-size: 0.92rem; }
+        .order-item-price { font-size: 1.05rem; }
+
+        .order-total { gap: 4rem; padding: 2rem; }
+        .total-row { gap: 2.5rem; }
+        .total-row.grand { padding-left: 2.5rem; }
+        .total-row span:first-child { font-size: 1.1rem; min-width: 100px; }
+        .total-row span:last-child { font-size: 1.5rem; }
+
+        .next-steps {
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .next-steps h4 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+        .next-steps ol { font-size: 0.92rem; }
+
+        .action-buttons { gap: 1.25rem; margin: 2rem 0; }
+
+        .btn-action {
+            min-width: 220px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+    }
+
+    /* ── 1920px+ (ultrawide / smart TV) ── */
+    @media (min-width: 1920px) {
+        .confirmation-container {
+            max-width: 1200px;
+            padding: 3.5rem 4rem;
+            margin: 4rem auto;
+        }
+
+        .confirmation-header h1 { font-size: 3.5rem; }
+        .order-number { font-size: 1.6rem; }
+        .success-icon { font-size: 4rem; }
     }
 </style>
 
@@ -744,7 +801,7 @@ include __DIR__ . '/includes/header.php';
             </div>
             <div class="info-box">
                 <h4>Order Details</h4>
-                <p style="font-size: 0.95rem;">
+                <p>
                     Method: <strong><?php echo ucwords(str_replace('_', ' ', $order['payment_method'])); ?></strong><br>
                     Status: <strong style="text-transform: capitalize; color: var(--primary-color);"><?php echo htmlspecialchars($order['status']); ?></strong><br>
                     Total: <strong><?php echo smartmall_format_money($order['total_price']); ?></strong>
@@ -752,7 +809,7 @@ include __DIR__ . '/includes/header.php';
             </div>
             <div class="info-box">
                 <h4>Contact Info</h4>
-                <p style="font-size: 0.95rem;">
+                <p>
                     <?php echo htmlspecialchars($order['email']); ?><br>
                     Date: <?php echo date('M d, Y', strtotime($order['created_at'])); ?>
                 </p>

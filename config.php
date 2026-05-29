@@ -15,6 +15,34 @@ if (file_exists($env_file)) {
 
 $app_env = $_ENV['APP_ENV'] ?? 'production';
 
+// Production error handler — never expose details to the browser
+function smartmall_error_handler($severity, $message, $file, $line): bool
+{
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    error_log("Smart Mall Error: $message in $file:$line");
+    if (($_ENV['APP_ENV'] ?? 'production') !== 'development') {
+        http_response_code(500);
+        require __DIR__ . '/errors/500.php';
+        exit;
+    }
+    return false;
+}
+
+function smartmall_exception_handler($e): void
+{
+    error_log("Smart Mall Exception: {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
+    if (($_ENV['APP_ENV'] ?? 'production') !== 'development') {
+        http_response_code(500);
+        require __DIR__ . '/errors/500.php';
+        exit;
+    }
+}
+
+set_error_handler('smartmall_error_handler');
+set_exception_handler('smartmall_exception_handler');
+
 // Session cookie hardening
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
@@ -61,7 +89,13 @@ require_once __DIR__ . '/includes/currency.php';
 function redirect($path)
 {
     global $base_url;
-    $url = (strpos($path, 'http') === 0) ? $path : $base_url . $path;
+    $allowed_base = parse_url($base_url, PHP_URL_HOST) ?: 'localhost';
+    $parsed = parse_url($path);
+    if (isset($parsed['host']) && $parsed['host'] !== $allowed_base) {
+        $url = $base_url . '/index.php';
+    } else {
+        $url = (strpos($path, 'http') === 0) ? $path : $base_url . $path;
+    }
     header("Location: $url");
     exit();
 }

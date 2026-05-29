@@ -11,15 +11,22 @@
       "chapa.co"
     ]
   },
-  "ios": {
-    "contentInset": "automatic",
-    "scrollEnabled": false,
-    "backgroundColor": "#ffffff"
-  },
   "android": {
     "allowMixedContent": false,
     "captureInput": true,
     "webContentsDebuggingEnabled": false,
-    "overrideBackButton": true
+    "overrideBackButton": true,
+    "versionCode": 8000,
+    "versionName": "8.0.0"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge","sound", "alert"
+      ]
+    }
   }
 }
