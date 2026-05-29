@@ -1603,6 +1603,12 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
                                 </svg>
                                 My Orders
                             </a>
+                            <a href="/reference/wishlist.php" class="dropdown-item">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                Wishlist
+                            </a>
                             <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
                                 <a href="/reference/admin/dashboard.php" class="dropdown-item">
                                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1705,6 +1711,12 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
                         <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                     </svg>
                     My Orders
+                </a>
+                <a href="/reference/wishlist.php" class="drawer-nav-link <?php echo $current_page === 'wishlist.php' ? 'is-active' : ''; ?>">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    Wishlist
                 </a>
                 <a href="/reference/cart.php" class="drawer-nav-link">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

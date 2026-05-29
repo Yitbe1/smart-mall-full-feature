@@ -31,6 +31,27 @@ try {
         $cat_stmt->execute([':category_id' => $product['category_id']]);
         $category_name = $cat_stmt->fetchColumn();
     }
+
+    // Check wishlist status
+    $in_wishlist = false;
+    if (isset($_SESSION['user_id'])) {
+        $w_stmt = $pdo->prepare("SELECT wishlist_id FROM wishlist WHERE user_id = :uid AND product_id = :pid");
+        $w_stmt->execute([':uid' => $_SESSION['user_id'], ':pid' => $product_id]);
+        $in_wishlist = (bool)$w_stmt->fetch();
+    }
+
+    // Fetch reviews
+    $reviews = [];
+    $avg_rating = 0;
+    $review_count = 0;
+    $stmt_r = $pdo->prepare("SELECT r.review_id, r.rating, r.review, r.created_at, u.name AS user_name FROM reviews r JOIN users u ON r.user_id = u.user_id WHERE r.product_id = :pid ORDER BY r.created_at DESC");
+    $stmt_r->execute([':pid' => $product_id]);
+    $reviews = $stmt_r->fetchAll();
+    $review_count = count($reviews);
+    if ($review_count > 0) {
+        $stmt_avg = $pdo->query("SELECT AVG(rating) AS avg_rating FROM reviews WHERE product_id = " . (int)$product_id);
+        $avg_rating = round((float)$stmt_avg->fetchColumn(), 1);
+    }
 } catch (PDOException $e) {
     error_log('Product page DB error: ' . $e->getMessage());
     die('An error occurred. Please try again later.');
@@ -619,7 +640,28 @@ include __DIR__ . '/includes/header.php';
             margin-bottom: 0.65rem;
         }
 
-        .product-stock-info {
+    .btn-wishlist-detail {
+        padding: 1rem;
+        background: var(--surface);
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-wishlist-detail:hover {
+        background: var(--primary-color);
+        color: #fff;
+    }
+    .btn-wishlist-detail.in-wishlist {
+        background: var(--primary-color);
+        color: #fff;
+    }
+    .product-stock-info {
             padding: 0.4rem;
             gap: 0.35rem;
             margin-bottom: 0.65rem;
@@ -814,6 +856,11 @@ include __DIR__ . '/includes/header.php';
                         </svg>
                         Buy Now
                     </button>
+                    <button class="btn-wishlist-detail <?php echo $in_wishlist ? 'in-wishlist' : ''; ?>" id="wishlist-btn" onclick="toggleWishlist(<?php echo $product['product_id']; ?>)" title="Save to wishlist">
+                        <svg width="20" height="20" fill="<?php echo $in_wishlist ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
                 </div>
             <?php else: ?>
                 <button class="btn-add-cart-detail" disabled style="opacity: 0.5;">
@@ -829,9 +876,86 @@ include __DIR__ . '/includes/header.php';
                     <li>Easy returns accepted</li>
                 </ul>
             </div>
+
+            <div class="reviews-section">
+                <h2>Customer Reviews <?php if ($review_count > 0): ?><span class="avg-rating"><?php echo str_repeat('★', (int)$avg_rating) . str_repeat('☆', 5 - (int)$avg_rating); ?> <?php echo $avg_rating; ?> (<?php echo $review_count; ?>)</span><?php endif; ?></h2>
+
+                <?php if ($review_count > 0): ?>
+                    <div class="reviews-list">
+                        <?php foreach ($reviews as $rev): ?>
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <strong><?php echo htmlspecialchars($rev['user_name']); ?></strong>
+                                    <span class="review-stars"><?php echo str_repeat('★', (int)$rev['rating']) . str_repeat('☆', 5 - (int)$rev['rating']); ?></span>
+                                    <span class="review-date"><?php echo date('M j, Y', strtotime($rev['created_at'])); ?></span>
+                                </div>
+                                <?php if ($rev['review']): ?>
+                                    <p class="review-text"><?php echo htmlspecialchars($rev['review']); ?></p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="no-reviews">No reviews yet. Be the first to review this product!</p>
+                <?php endif; ?>
+
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <div class="review-form">
+                        <h3>Write a Review</h3>
+                        <form method="POST" action="submit_review.php">
+                            <?php csrf_field(); ?>
+                            <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+                            <div class="star-rating">
+                                <span class="star-label">Your Rating:</span>
+                                <div class="stars-input">
+                                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                                        <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?>>
+                                        <label for="star<?php echo $i; ?>">★</label>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
+                            <textarea name="review" rows="4" placeholder="Share your thoughts about this product... (optional)"></textarea>
+                            <button type="submit" class="btn-review-submit">Submit Review</button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <p class="login-to-review"><a href="/reference/login.php?redirect=product.php&product_id=<?php echo $product_id; ?>">Login</a> to write a review.</p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.reviews-section { margin-top: 3rem; }
+.reviews-section h2 { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.avg-rating { font-size: 1rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.25rem; }
+.reviews-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+.review-card { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; }
+.review-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.review-header strong { font-size: 0.95rem; color: var(--text-dark); }
+.review-stars { color: #f59e0b; font-size: 1rem; letter-spacing: 2px; }
+.review-date { font-size: 0.8rem; color: var(--text-light); margin-left: auto; }
+.review-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+.no-reviews { color: var(--text-light); font-style: italic; margin-bottom: 1.5rem; }
+.login-to-review { color: var(--text-light); font-size: 0.9rem; }
+.login-to-review a { color: var(--primary-color); font-weight: 600; }
+
+.review-form { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem; }
+.review-form h3 { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1rem; }
+.star-rating { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.star-label { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
+.stars-input { display: flex; flex-direction: row-reverse; gap: 0.25rem; }
+.stars-input input { display: none; }
+.stars-input label { font-size: 1.75rem; color: #ddd; cursor: pointer; transition: color 0.15s; }
+.stars-input input:checked ~ label,
+.stars-input label:hover,
+.stars-input label:hover ~ label { color: #f59e0b; }
+.review-form textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 5px; font-family: inherit; font-size: 0.9rem; resize: vertical; margin-bottom: 1rem; background: var(--bg-light); color: var(--text-dark); }
+.review-form textarea:focus { outline: none; border-color: var(--primary-color); }
+.btn-review-submit { background: var(--primary-color); color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 5px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+.btn-review-submit:hover { background: var(--primary-dark); }
+</style>
 
 <script>
     const mainImageContainer = document.querySelector('#main-media-container');
@@ -972,6 +1096,36 @@ include __DIR__ . '/includes/header.php';
                 console.error('Error:', error);
                 showToast('Error adding to cart', 'error');
             });
+    }
+
+    function toggleWishlist(productId) {
+        <?php if (!isset($_SESSION['user_id'])): ?>
+            showToast('Please login to save items', 'warning');
+            setTimeout(() => window.location.href = 'login.php', 1500);
+            return;
+        <?php endif; ?>
+        const btn = document.getElementById('wishlist-btn');
+        fetch('toggle_wishlist.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showToast(d.message, 'success');
+                if (d.action === 'added') {
+                    btn.classList.add('in-wishlist');
+                    btn.querySelector('svg').setAttribute('fill', 'currentColor');
+                } else {
+                    btn.classList.remove('in-wishlist');
+                    btn.querySelector('svg').setAttribute('fill', 'none');
+                }
+            } else {
+                showToast(d.message, 'error');
+            }
+        })
+        .catch(() => showToast('Error updating wishlist', 'error'));
     }
 
     function buyNow(productId) {
