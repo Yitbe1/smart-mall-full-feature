@@ -8,4 +8,7 @@ smartmall-app/android/capacitor-cordova-android-plugins/.gradle/
 smartmall-app/android/capacitor-cordova-android-plugins/build/
 smartmall-app/android/app/build/
 smartmall-app/android/capacitor/build/
+logs/
+backups/
+credentials/
 .docs/
