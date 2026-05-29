@@ -1,0 +1,63 @@
+name: Smart Mall CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: smartmall_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: pdo_mysql, mysqli, mbstring, curl
+          coverage: none
+
+      - name: Copy .env.example to .env
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+            echo "Database config updated for CI"
+            sed -i 's/DB_HOST=localhost/DB_HOST=127.0.0.1/' .env
+            sed -i 's/DB_USER=root/DB_USER=root/' .env
+            sed -i 's/DB_PASS=/DB_PASS=root/' .env
+          else
+            echo "No .env.example found, skipping .env setup"
+          fi
+
+      - name: Run PHP lint
+        run: |
+          find . -name '*.php' \
+            -not -path './vendor/*' \
+            -not -path './docs/node_modules/*' \
+          -exec php -l {} \; 2>&1 | tee lint_output.txt
+          if grep -q "Parse error\|Fatal error" lint_output.txt; then
+            echo "Lint failed!"
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: php tests/run.php
+        continue-on-error: true

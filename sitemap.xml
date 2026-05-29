@@ -1,0 +1,50 @@
+<?php header('Content-Type: application/xml; charset=utf-8'); ?>
+<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<?php
+require_once __DIR__ . '/includes/db.php';
+
+$base = '/reference';
+
+/* Static pages */
+$static_pages = [
+    ['loc' => '/index.php',           'priority' => '1.0', 'changefreq' => 'weekly'],
+    ['loc' => '/about.php',           'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/contact.php',         'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/cart.php',            'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/login.php',           'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/register.php',        'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/wishlist.php',        'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/orders.php',          'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => '/download.php',        'priority' => '0.5', 'changefreq' => 'monthly'],
+];
+
+foreach ($static_pages as $page):
+?>
+    <url>
+        <loc><?php echo $base . $page['loc']; ?></loc>
+        <changefreq><?php echo $page['changefreq']; ?></changefreq>
+        <priority><?php echo $page['priority']; ?></priority>
+    </url>
+<?php endforeach; ?>
+
+<?php
+/* Product pages */
+try {
+    $pdo = getDB();
+    $stmt = $pdo->query("SELECT product_id, created_at FROM products ORDER BY product_id");
+    while ($row = $stmt->fetch()):
+?>
+    <url>
+        <loc><?php echo $base; ?>/product.php?product_id=<?php echo (int)$row['product_id']; ?></loc>
+        <lastmod><?php echo date('Y-m-d', strtotime($row['created_at'])); ?></lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+<?php
+    endwhile;
+} catch (Throwable $e) {
+    error_log('Sitemap generation error: ' . $e->getMessage());
+}
+?>
+</urlset>

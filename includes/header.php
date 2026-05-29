@@ -5,6 +5,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 require_once __DIR__ . '/currency.php';
+require_once __DIR__ . '/seo.php';
 
 // Prevent browser caching for session-dependent pages
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -57,6 +58,12 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
         })();
     </script>
     <title><?php echo htmlspecialchars($page_title); ?></title>
+    <?php if (!empty($page_description)): ?>
+    <meta name="description" content="<?php echo htmlspecialchars($page_description); ?>">
+    <?php endif; ?>
+    <meta name="keywords" content="smart mall, online shopping, ecommerce, ethiopia">
+    <?php seo_og_tags($page_title, $page_description ?? ''); ?>
+    <?php seo_canonical(); ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">

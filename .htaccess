@@ -7,3 +7,8 @@
 <FilesMatch "(composer\.json|composer\.lock|package\.json|package-lock\.json|yarn\.lock)$">
     Require all denied
 </FilesMatch>
+
+# Parse sitemap.xml as PHP for dynamic generation
+<Files "sitemap.xml">
+    SetHandler application/x-httpd-php
+</Files>
