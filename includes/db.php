@@ -31,7 +31,10 @@ try {
     die('A database connection error occurred. Please try again later or contact the site administrator.');
 }
 
-// Return the shared PDO connection
+/**
+ * Return the shared PDO database connection.
+ * Uses a global variable set at the bottom of this file.
+ */
 function getDB()
 {
     global $pdo;

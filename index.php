@@ -65,7 +65,8 @@ try {
 
     $products = $stmt->fetchAll();
 } catch (PDOException $e) {
-    $error = 'Database error: ' . $e->getMessage();
+    error_log("Smart Mall index.php: " . $e->getMessage());
+    $error = 'Could not load products. Please try again.';
 }
 
 include __DIR__ . '/includes/header.php';

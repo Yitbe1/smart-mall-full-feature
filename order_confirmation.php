@@ -3,7 +3,6 @@
 require_once __DIR__ . '/config.php';
 
 $page_title = 'Order Confirmation - Smart Mall';
-//require_once 'includes/db.php';
 $order_id = $_GET['order_id'] ?? 0;
 if (!$order_id) {
     header('Location: checkout.php');

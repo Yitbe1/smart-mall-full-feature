@@ -12,7 +12,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 $categories = [];
-$success = '';
 
 /**
  * Handle image upload for category slides

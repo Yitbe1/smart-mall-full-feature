@@ -15,7 +15,10 @@ if (file_exists($env_file)) {
 
 $app_env = $_ENV['APP_ENV'] ?? 'production';
 
-// Production error handler — never expose details to the browser
+/**
+ * Production error handler — never expose details to the browser.
+ * Logs the real error and shows a generic 500 page in production.
+ */
 function smartmall_error_handler($severity, $message, $file, $line): bool
 {
     if (!(error_reporting() & $severity)) {
@@ -30,6 +33,10 @@ function smartmall_error_handler($severity, $message, $file, $line): bool
     return false;
 }
 
+/**
+ * Production exception handler.
+ * Logs the full exception and shows a generic 500 page in production.
+ */
 function smartmall_exception_handler($e): void
 {
     error_log("Smart Mall Exception: {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
@@ -86,6 +93,10 @@ $base_url = $protocol . $host . $subfolder;
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/currency.php';
 
+/**
+ * Redirect to a given path.
+ * Validates host to prevent open redirect attacks.
+ */
 function redirect($path)
 {
     global $base_url;
@@ -97,7 +108,7 @@ function redirect($path)
         $url = (strpos($path, 'http') === 0) ? $path : $base_url . $path;
     }
     header("Location: $url");
-    exit();
+    exit;
 }
 
 // Security headers

@@ -52,7 +52,10 @@ try {
     $categories_list = [];
 }
 
-function upload_error_message($code)
+/**
+ * Translate a PHP file upload error code to a user-friendly message.
+ */
+function upload_error_message(int $code): string
 {
     $messages = [
         UPLOAD_ERR_INI_SIZE => 'The image is larger than the server upload limit.',

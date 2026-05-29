@@ -6,9 +6,7 @@ require_once __DIR__ . '/config.php';
 // Handle logic/redirects HERE (before header.php)
 // No generic POST redirect: let specific form handlers process the request.
 
-//$page_title = 'Shopping Cart - Smart Mall';
-
-// 3️⃣ Set page-specific vars
+// Set page-specific vars
 $page_title = 'Shopping Cart - Smart Mall';
 $current_page = 'cart.php';
 $cart_count = $_SESSION['cart_count'] ?? 0;

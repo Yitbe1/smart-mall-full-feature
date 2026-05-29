@@ -26,7 +26,8 @@ try {
     $stmt->execute([':user_id' => $user_id]);
     $orders = $stmt->fetchAll();
 } catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
+    error_log("Smart Mall orders.php: " . $e->getMessage());
+    $error = "Could not load your orders. Please try again.";
 }
 
 // Handle order cancellation
