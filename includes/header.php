@@ -34,11 +34,18 @@ if (isset($_SESSION['user_id']) && function_exists('getDB')) {
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#007AFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Smart Mall">
     <link rel="apple-touch-icon" href="/assets/images/logo-icon.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
     <script>
         (function() {
             const savedTheme = localStorage.getItem('smartmall-theme');
