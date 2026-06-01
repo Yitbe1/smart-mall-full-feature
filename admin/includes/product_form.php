@@ -403,7 +403,7 @@ function render_product_form(?array $product, array $categories, array $errors, 
                     <?php if ($is_edit && !empty($product['image'])): ?>
                         <div class="image-preview">
                             <div class="media-preview-container">
-                                <img src="../uploads/<?php echo htmlspecialchars($product['image']); ?>" alt="Cover">
+                                <img src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="Cover">
                                 <button type="button" class="delete-btn-overlay" onclick="deleteMedia('cover')" title="Delete cover image">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                         <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -421,7 +421,7 @@ function render_product_form(?array $product, array $categories, array $errors, 
                         <?php if ($is_edit && !empty($additional_images_names[0])): ?>
                             <div class="image-preview" style="margin-top: 0.5rem;">
                                 <div class="media-preview-container" style="max-width: 120px;">
-                                    <img src="../uploads/<?php echo htmlspecialchars($additional_images_names[0]); ?>" alt="Angle 2" style="max-width: 120px;">
+                                    <img src="<?php echo htmlspecialchars(get_product_image_url($additional_images_names[0])); ?>" alt="Angle 2" style="max-width: 120px;">
                                     <button type="button" class="delete-btn-overlay" style="width: 26px; height: 26px; top: 4px; right: 4px;" onclick="deleteMedia('slide2')" title="Delete secondary image">
                                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -437,7 +437,7 @@ function render_product_form(?array $product, array $categories, array $errors, 
                         <?php if ($is_edit && !empty($additional_images_names[1])): ?>
                             <div class="image-preview" style="margin-top: 0.5rem;">
                                 <div class="media-preview-container" style="max-width: 120px;">
-                                    <img src="../uploads/<?php echo htmlspecialchars($additional_images_names[1]); ?>" alt="Angle 3" style="max-width: 120px;">
+                                    <img src="<?php echo htmlspecialchars(get_product_image_url($additional_images_names[1])); ?>" alt="Angle 3" style="max-width: 120px;">
                                     <button type="button" class="delete-btn-overlay" style="width: 26px; height: 26px; top: 4px; right: 4px;" onclick="deleteMedia('slide3')" title="Delete detail image">
                                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

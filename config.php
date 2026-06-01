@@ -96,9 +96,11 @@ if ($subfolder === '/') {
 }
 $base_url = $protocol . $host . $subfolder;
 
-// BASE_PATH — use .env override if set, otherwise autodetect from script path
+// BASE_PATH — derive from config.php's location, not the requesting script
+$base_path = strtr(str_replace($_SERVER['DOCUMENT_ROOT'] ?? '', '', __DIR__), '\\', '/');
+if ($base_path === '/') { $base_path = ''; }
 $base_path_env = $_ENV['BASE_PATH'] ?? '';
-$base_path = $base_path_env !== '' ? $base_path_env : '';
+if ($base_path_env !== '') { $base_path = $base_path_env; }
 define('BASE_PATH', $base_path);
 
 require_once __DIR__ . '/includes/db.php';

@@ -134,7 +134,7 @@ echo "--- Step 3: Running Tests ---"
 if [ "$MIGRATE_ONLY" = true ] || [ "$QUICK" = true ]; then
     info "Skipping tests ($([ "$MIGRATE_ONLY" = true ] && echo '--migrate' || echo '--quick') mode)"
 else
-    if $PHP_BIN "$PROJECT_DIR/tests/run.php"; then
+    if $PHP_BIN "$PROJECT_DIR/_dev/tests/run.php"; then
         ok "All tests passed"
     else
         warn "Some tests failed — continuing deployment"

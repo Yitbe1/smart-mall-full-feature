@@ -1810,10 +1810,11 @@ function time_elapsed(string $datetime): string
 
             .logo-brand {
                 gap: 0.35rem;
+
             }
 
             .logo-brand-text {
-                font-size: 1.25rem;
+                font-size: 1.5rem;
                 line-height: 1;
             }
 
@@ -1837,6 +1838,7 @@ function time_elapsed(string $datetime): string
                 max-width: none;
                 width: 100%;
             }
+
         }
 
         @media (max-width: 400px) {
@@ -1852,7 +1854,8 @@ function time_elapsed(string $datetime): string
             }
 
             .logo-brand {
-                gap: 0.25rem;
+                gap: 0.3rem;
+                align-items: center;
             }
 
             .logo-brand-text {
@@ -1864,6 +1867,7 @@ function time_elapsed(string $datetime): string
                 height: 24px;
                 transform: translateY(-1.5px);
             }
+
         }
     </style>
 </head>

@@ -2,15 +2,15 @@
 // Database configuration and connection
 // This file handles all database connections using PDO for security
 
-// Database credentials loaded from .env
-$host    = $_ENV['DB_HOST'] ?? 'localhost';
-$db_name = $_ENV['DB_NAME'] ?? 'smartmall_db';
-$db_user = $_ENV['DB_USER'] ?? 'root';
+// Database credentials — single source of truth is .env
+$host    = $_ENV['DB_HOST'] ?? '';
+$db_name = $_ENV['DB_NAME'] ?? '';
+$db_user = $_ENV['DB_USER'] ?? '';
 $db_pass = $_ENV['DB_PASS'] ?? '';
 
-if (empty($db_name) || $db_user === false) {
+if (empty($host) || empty($db_name) || empty($db_user)) {
     error_log('Smart Mall: Database credentials not configured. Check .env file.');
-    die('A configuration error occurred. Please contact the site administrator.');
+    die('Database configuration error. Please contact the site administrator.');
 }
 
 // Create DSN (Data Source Name)
@@ -112,8 +112,7 @@ function get_product_image_url(string $image_path): string
     }
 
     // Otherwise, assume it's in the uploads folder
-    // Adjust path based on whether we are in admin subfolder
-    $prefix = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false) ? '../' : '';
+    $prefix = defined('BASE_PATH') ? BASE_PATH . '/' : '';
     return $prefix . 'uploads/' . $image_path;
 }
 
@@ -137,7 +136,7 @@ function get_product_video_url(string $video_path): string
     }
 
     // Otherwise, assume it's in the uploads folder
-    $prefix = (strpos($_SERVER['PHP_SELF'], '/admin/') !== false) ? '../' : '';
+    $prefix = defined('BASE_PATH') ? BASE_PATH . '/' : '';
     return $prefix . 'uploads/' . $video_path;
 }
 

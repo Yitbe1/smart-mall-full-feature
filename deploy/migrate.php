@@ -29,10 +29,15 @@ if (file_exists($env_file)) {
     }
 }
 
-$host    = $_ENV['DB_HOST'] ?? 'localhost';
-$db_name = $_ENV['DB_NAME'] ?? 'smartmall_db';
-$user    = $_ENV['DB_USER'] ?? 'root';
+$host    = $_ENV['DB_HOST'] ?? '';
+$db_name = $_ENV['DB_NAME'] ?? '';
+$user    = $_ENV['DB_USER'] ?? '';
 $pass    = $_ENV['DB_PASS'] ?? '';
+
+if (empty($host) || empty($db_name) || empty($user)) {
+    fwrite(STDERR, "Database credentials not configured. Check .env file.\n");
+    exit(1);
+}
 
 try {
     $pdo = new PDO(

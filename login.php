@@ -2,12 +2,8 @@
 // User Login — POST is processed BEFORE header.php to allow header() redirects
 $page_title = 'Login - Smart Mall';
 
-require_once 'includes/db.php';
-
-// Start session early (before header.php) so redirects work
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
-// Load .env so send_mail() has BREVO_API_KEY and SMTP_FROM
 $env_file = __DIR__ . '/.env';
 if (file_exists($env_file)) {
     $env_vars = parse_ini_file($env_file);
@@ -18,6 +14,8 @@ if (file_exists($env_file)) {
         }
     }
 }
+
+require_once 'includes/db.php';
 
 // Already logged in → redirect
 if (isset($_SESSION['user_id'])) {
@@ -37,9 +35,11 @@ if ($subfolder === '/') {
 }
 $base_url = $protocol . $host . $subfolder;
 
-// BASE_PATH — same logic as config.php
+// BASE_PATH — derive from login.php's location, not the requesting script
+$base_path = strtr(str_replace($_SERVER['DOCUMENT_ROOT'] ?? '', '', __DIR__), '\\', '/');
+if ($base_path === '/') { $base_path = ''; }
 $base_path_env = $_ENV['BASE_PATH'] ?? '';
-$base_path = $base_path_env !== '' ? $base_path_env : '';
+if ($base_path_env !== '') { $base_path = $base_path_env; }
 define('BASE_PATH', $base_path);
 
 $errors = [];

@@ -2,8 +2,6 @@
 // Google Sign-In callback (JSON API)
 header('Content-Type: application/json');
 
-require_once 'includes/db.php';
-
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $env_file = __DIR__ . '/.env';
@@ -16,6 +14,8 @@ if (file_exists($env_file)) {
         }
     }
 }
+
+require_once 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['credential'])) {
     echo json_encode(['success' => false, 'error' => 'Invalid request']);

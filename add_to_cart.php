@@ -2,6 +2,17 @@
 // Add to Cart Handler (AJAX endpoint)
 session_start();
 
+$env_file = __DIR__ . '/.env';
+if (file_exists($env_file)) {
+    $env_vars = parse_ini_file($env_file);
+    if ($env_vars) {
+        foreach ($env_vars as $key => $value) {
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
+    }
+}
+
 require_once 'includes/db.php';
 
 header('Content-Type: application/json');

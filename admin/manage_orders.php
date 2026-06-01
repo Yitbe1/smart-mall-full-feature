@@ -636,7 +636,7 @@ include __DIR__ . '/../includes/header.php';
                                                         $item = explode('::', $item_raw);
                                                 ?>
                                                         <div class="order-item-detail">
-                                                            <img src="<?php echo !empty($item[1]) ? '../uploads/' . htmlspecialchars($item[1]) : '../assets/no-image.png'; ?>"
+                                                            <img src="<?php echo !empty($item[1]) ? htmlspecialchars(get_product_image_url($item[1])) : '../assets/no-image.png'; ?>"
                                                                 class="order-item-img" alt="">
                                                             <div style="flex: 1;">
                                                                 <div style="font-weight: 700;"><?php echo htmlspecialchars($item[0]); ?>
