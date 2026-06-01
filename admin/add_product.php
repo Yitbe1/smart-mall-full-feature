@@ -48,6 +48,7 @@ $categories_list = [];
 try {
     $categories_list = getDB()->query("SELECT category_id, name FROM categories ORDER BY name")->fetchAll();
 } catch (Exception $e) {
+    error_log("Admin add_product category load error: " . $e->getMessage());
     $categories_list = [];
 }
 
@@ -191,6 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 require_once __DIR__ . '/includes/product_form.php';
 require_once '../includes/header.php';
-include __DIR__ . '/includes/admin_nav.php';
+
+
 render_product_form($product, $categories_list, $errors, $is_edit, ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) ? $additional_images_arr : null);
 require_once '../includes/footer.php';

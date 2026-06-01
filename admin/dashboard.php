@@ -9,12 +9,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit();
 }
 
-$products = [];
 $stats = [];
 $error = '';
-$search = trim($_GET['search'] ?? '');
-$page = max(1, (int)($_GET['page'] ?? 1));
-$perPage = 20;
 
 try {
     $pdo = getDB();
@@ -25,33 +21,8 @@ try {
     $stats['total_orders'] = $pdo->query("SELECT COUNT(*) as total FROM orders")->fetch()['total'];
     $stats['total_revenue'] = $pdo->query("SELECT SUM(total_price) as total FROM orders")->fetch()['total'] ?? 0;
     $stats['total_categories'] = $pdo->query("SELECT COUNT(*) as total FROM categories")->fetch()['total'] ?? 0;
+    $stats['total_users'] = $pdo->query("SELECT COUNT(*) as total FROM users")->fetch()['total'] ?? 0;
 
-    // Search and paginate products
-    $where = '';
-    $params = [];
-    if ($search !== '') {
-        $where = 'WHERE p.name LIKE :search OR c.name LIKE :search2';
-        $params[':search'] = "%$search%";
-        $params[':search2'] = "%$search%";
-    }
-
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM products p LEFT JOIN categories c ON p.category_id = c.category_id $where");
-    $countStmt->execute($params);
-    $totalProducts = (int)$countStmt->fetchColumn();
-    $totalPages = max(1, (int)ceil($totalProducts / $perPage));
-    $page = min($page, $totalPages);
-    $offset = ($page - 1) * $perPage;
-
-    $stmt = $pdo->prepare("
-        SELECT p.product_id, p.name, p.price, p.stock, p.created_at, p.image, c.name as category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        $where
-        ORDER BY p.created_at DESC
-        LIMIT $perPage OFFSET $offset
-    ");
-    $stmt->execute($params);
-    $products = $stmt->fetchAll();
 } catch (PDOException $e) {
     error_log("Admin dashboard error: " . $e->getMessage());
     $error = "Database error occurred";
@@ -68,11 +39,11 @@ include __DIR__ . '/../includes/header.php';
     }
 
     .stat-card {
-        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-        color: white;
-        padding: 1.75rem 1.5rem;
-        border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem 1.5rem 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
         text-align: center;
         text-decoration: none;
         transition: transform 0.25s, box-shadow 0.25s;
@@ -80,21 +51,56 @@ include __DIR__ . '/../includes/header.php';
         overflow: hidden;
     }
 
-    .stat-card::after {
+    .stat-card::before {
         content: '';
         position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 50%;
-        pointer-events: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
     }
 
-    .stat-card:hover {
+    .stat-card:nth-child(1)::before {
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+    }
+
+    .stat-card:nth-child(2)::before {
+        background: linear-gradient(90deg, #059669, #10b981);
+    }
+
+    .stat-card:nth-child(3)::before {
+        background: linear-gradient(90deg, #7c3aed, #8b5cf6);
+    }
+
+    .stat-card:nth-child(4)::before {
+        background: linear-gradient(90deg, #d97706, #f59e0b);
+    }
+
+    a.stat-card {
+        cursor: pointer;
+        padding-bottom: 2.25rem;
+    }
+
+    a.stat-card::after {
+        content: '↗';
+        position: absolute;
+        bottom: 0.65rem;
+        right: 0.75rem;
+        font-size: 1rem;
+        font-weight: 700;
+        opacity: 0.65;
+        transition: opacity 0.25s, transform 0.25s;
+        color: var(--text-light);
+    }
+
+    a.stat-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    a.stat-card:hover::after {
+        opacity: 1;
+        transform: translateX(3px) translateY(-2px);
     }
 
     .stat-value {
@@ -103,11 +109,12 @@ include __DIR__ . '/../includes/header.php';
         margin-bottom: 0.25rem;
         font-family: 'Outfit', sans-serif;
         line-height: 1.2;
+        color: var(--text-dark);
     }
 
     .stat-label {
         font-size: 0.85rem;
-        opacity: 0.85;
+        color: var(--text-light);
         font-weight: 500;
     }
 
@@ -148,125 +155,98 @@ include __DIR__ . '/../includes/header.php';
         transform: translateY(-1px);
     }
 
-    .products-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: var(--surface);
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        border: 1px solid var(--border-color);
-    }
-
-    .products-table thead {
-        background-color: var(--primary-color);
-        color: white;
-    }
-
-    .products-table th {
-        padding: 1rem 1rem;
-        text-align: left;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.06em;
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-    .products-table th:first-child {
-        width: 72px;
-    }
-
-    .products-table th:nth-child(3) {
-        width: 140px;
-    }
-
-    .products-table th:nth-child(4),
-    .products-table th:nth-child(5) {
-        width: 100px;
-    }
-
-    .products-table th:last-child {
-        width: 170px;
-    }
-
-    .products-table td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        color: var(--text-dark);
-        font-size: 0.9rem;
-    }
-
-    .products-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .products-table tbody tr:nth-child(even) {
-        background: rgba(0, 0, 0, 0.015);
-    }
-
-    .products-table tbody tr:hover {
-        background: var(--primary-light);
-    }
-
-    .action-buttons {
+    .header-actions {
         display: flex;
-        gap: 0.4rem;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-self: flex-start;
+        width: 100%;
+        align-items: center;
     }
 
-    .btn-edit,
-    .btn-delete {
-        padding: 0.45rem 1rem;
+    .btn-primary-action {
+        padding: 0.8rem 1.8rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .btn-primary-action:hover {
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-primary-action.btn-reports {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    }
+
+    .btn-primary-action.btn-reports:hover {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .btn-primary-action.btn-new-product {
+        background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .btn-primary-action.btn-new-product:hover {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .search-box {
+        display: flex;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
+    .search-box input {
+        padding: 0.65rem 1.1rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        font-size: 0.85rem;
+        background: var(--input-bg);
+        color: var(--text-dark);
+        min-width: 220px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .search-box button {
+        padding: 0.65rem 1.2rem;
+        border-radius: 12px;
         border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 0.82rem;
-        transition: all 0.2s;
-    }
-
-    .btn-edit {
         background: var(--primary-color);
-        color: white !important;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.25s, transform 0.2s;
     }
 
-    .btn-edit:hover {
+    .search-box button:hover {
         background: var(--primary-dark);
         transform: translateY(-1px);
     }
 
-    .btn-delete {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--danger-color);
-    }
-
-    .btn-delete:hover {
-        background: var(--danger-color);
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .products-section-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.35rem;
-        font-weight: 700;
-        color: var(--secondary-color);
-        margin-bottom: 1rem;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
+    .search-box .clear-btn {
+        padding: 0.65rem 1.1rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
         color: var(--text-light);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: background-color 0.2s;
     }
 
-    .table-wrapper {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-radius: 16px;
+    .search-box .clear-btn:hover {
+        background: var(--border-color);
     }
 
     @media (max-width: 768px) {
@@ -281,20 +261,6 @@ include __DIR__ . '/../includes/header.php';
 
         .stat-value {
             font-size: 1.75rem;
-        }
-
-        .products-table {
-            font-size: 0.85rem;
-            min-width: 560px;
-        }
-
-        .products-table th,
-        .products-table td {
-            padding: 0.65rem 0.75rem;
-        }
-
-        .action-buttons {
-            flex-direction: column;
         }
     }
 
@@ -337,150 +303,51 @@ include __DIR__ . '/../includes/header.php';
             border-radius: 8px;
         }
 
-        .table-wrapper {
-            overflow: visible;
-            border: none;
-        }
-
-        .products-table,
-        .products-table thead,
-        .products-table tbody,
-        .products-table tr,
-        .products-table th,
-        .products-table td {
-            display: block;
-        }
-
-        .products-table thead {
-            display: none;
-        }
-
-        .products-table {
-            min-width: 0;
-            border-radius: 0;
-            border: none;
-            box-shadow: none;
-        }
-
-        .products-table tr {
-            background: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .products-table td {
-            padding: 0.25rem 0;
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+        .btn-primary-action {
+            padding: 0.5rem 1rem;
             font-size: 0.78rem;
+            border-radius: 10px;
         }
 
-        .products-table td::before {
-            content: attr(data-label);
-            font-weight: 700;
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-light);
-            min-width: 4.5rem;
-            flex-shrink: 0;
+        .search-box input {
+            font-size: 0.75rem;
+            padding: 0.45rem 0.7rem;
+            min-width: 140px;
         }
 
-        .products-table td:first-child {
-            padding-top: 0;
+        .search-box button {
+            padding: 0.45rem 0.8rem;
+            font-size: 0.75rem;
         }
 
-        .products-table td:last-child {
-            padding-bottom: 0;
-        }
-
-        .products-table td:not(:last-child) {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.3rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .action-buttons {
-            flex-direction: row;
-            gap: 0.4rem;
-            width: 100%;
-        }
-
-        .btn-edit,
-        .btn-delete {
-            font-size: 0.72rem;
-            padding: 0.3rem 0.6rem;
-            flex: 1;
-            text-align: center;
-        }
-
-        .empty-state {
-            padding: 1rem;
+        .search-box .clear-btn {
+            padding: 0.45rem 0.7rem;
+            font-size: 0.75rem;
         }
     }
 
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 0.35rem;
-        margin-top: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .page-link {
-        padding: 0.5rem 0.9rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        color: var(--text-dark);
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.2s;
-    }
-
-    .page-link:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        background: var(--primary-light);
-    }
-
-    .page-link.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
 </style>
 
-<?php include __DIR__ . '/includes/admin_nav.php'; ?>
-
-<div class="container" style="width: min(1300px, calc(100% - 32px));">
+<div class="container" style="width: min(1300px, calc(100% - 32px)); padding-top: 4rem;">
     <!-- Admin Header -->
-    <div class="admin-header">
-        <h2>Admin Dashboard</h2>
-        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-            <form method="GET" style="display:flex;gap:0.5rem;">
-                <input type="text" name="search" placeholder="Search products..." value="<?php echo htmlspecialchars($search); ?>" style="padding:0.6rem 1rem;border-radius:10px;border:1.5px solid var(--border-color);font-size:0.85rem;background:var(--input-bg);color:var(--text-dark);min-width:200px;">
-                <button type="submit" style="padding:0.6rem 1rem;border-radius:10px;border:none;background:var(--primary-color);color:white;font-weight:600;cursor:pointer;">Search</button>
-                <?php if ($search !== ''): ?>
-                    <a href="dashboard.php" style="padding:0.6rem 1rem;border-radius:10px;border:1.5px solid var(--border-color);color:var(--text-light);text-decoration:none;font-weight:600;font-size:0.85rem;">Clear</a>
-                <?php endif; ?>
-            </form>
-            <a href="add_product.php" class="btn-add">+ New Product</a>
+    <div class="admin-header" style="flex-direction:column;align-items:center;gap:1rem;">
+        <h2 style="font-size:2.25rem; font-weight:700; font-family:'Outfit',sans-serif; margin:0; letter-spacing:-0.5px; background:linear-gradient(135deg, var(--text-dark) 0%, var(--primary-color) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+            Admin Dashboard
+        </h2>
+        <span style="display:block; width:60px; height:4px; background:linear-gradient(90deg, var(--primary-color), transparent); border-radius:2px; margin:-0.25rem auto 0;"></span>
+        <div class="header-actions">
+            <a href="reports.php" class="btn-add btn-primary-action btn-reports">Reports</a>
+            <a href="add_product.php" class="btn-add btn-primary-action btn-new-product">+ New Product</a>
         </div>
     </div>
 
     <!-- Statistics -->
     <div class="admin-container">
-        <div class="stat-card">
+        <a href="manage_products.php" class="stat-card">
             <div class="stat-value"><?php echo $stats['total_products']; ?></div>
             <div class="stat-label">Total Products</div>
-        </div>
-        <a href="manage_categories.php" class="stat-card" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+        </a>
+        <a href="manage_categories.php" class="stat-card">
             <div class="stat-value"><?php echo $stats['total_categories']; ?></div>
             <div class="stat-label">Categories</div>
         </a>
@@ -488,95 +355,12 @@ include __DIR__ . '/../includes/header.php';
             <div class="stat-value"><?php echo $stats['total_orders']; ?></div>
             <div class="stat-label">Total Orders</div>
         </a>
-        <div class="stat-card" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
-            <div class="stat-value"><?php echo smartmall_format_money($stats['total_revenue']); ?></div>
-            <div class="stat-label">Total Revenue</div>
-        </div>
+        <a href="manage_users.php" class="stat-card">
+            <div class="stat-value"><?php echo $stats['total_users']; ?></div>
+            <div class="stat-label">Users</div>
+        </a>
     </div>
 
-    <!-- Products Table -->
-    <h3 class="products-section-title">Products Management</h3>
-
-    <?php if (isset($_SESSION['success'])): ?>
-        <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['success']);
-                                            unset($_SESSION['success']); ?></div>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['error'])): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error']);
-                                        unset($_SESSION['error']); ?></div>
-    <?php endif; ?>
-
-    <?php if (isset($error)): ?>
-        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
-
-    <?php if (count($products) > 0): ?>
-        <div class="table-wrapper">
-            <table class="products-table">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($products as $product): ?>
-                        <tr>
-                            <td data-label="Image">
-                                <div style="width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--bg-light); border: 1px solid var(--border-color); flex-shrink: 0;">
-                                    <?php if (!empty($product['image'])): ?>
-                                        <img loading="lazy" src="<?php echo htmlspecialchars(get_product_image_url($product['image'])); ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
-                                    <?php else: ?>
-                                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.65rem; color: #999;">No img</div>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
-                            <td data-label="Name"><strong><?php echo htmlspecialchars($product['name']); ?></strong></td>
-                            <td data-label="Category"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></td>
-                            <td data-label="Price"><?php echo smartmall_format_money($product['price']); ?></td>
-                            <td data-label="Stock"><?php echo $product['stock']; ?></td>
-                            <td data-label="Actions">
-                                <div class="action-buttons">
-                                    <a href="add_product.php?product_id=<?php echo $product['product_id']; ?>" class="btn-edit">Edit</a>
-                                    <form method="POST" action="delete_product.php" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
-                                        <?php csrf_field(); ?>
-                                        <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
-                                        <button type="submit" class="btn-delete">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <?php if ($totalPages > 1): ?>
-            <div class="pagination">
-                <?php if ($page > 1): ?>
-                    <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" class="page-link">Previous</a>
-                <?php endif; ?>
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>" class="page-link <?php echo $i === $page ? 'active' : ''; ?>"><?php echo $i; ?></a>
-                <?php endfor; ?>
-                <?php if ($page < $totalPages): ?>
-                    <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" class="page-link">Next</a>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-
-    <?php else: ?>
-        <div class="empty-state">
-            <h3>No Products Yet</h3>
-            <p>Start by adding your first product</p>
-            <a href="add_product.php" class="btn-add" style="display: inline-block; margin-top: 1rem;">Add Product</a>
-        </div>
-    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

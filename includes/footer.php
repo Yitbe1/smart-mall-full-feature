@@ -332,9 +332,9 @@
 
     <div class="footer-grid">
         <div class="footer-brand-column">
-            <a class="footer-brand" href="/reference/index.php" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                <img src="/reference/assets/images/logo-icon.png" alt="Smart Mall Logo Icon" style="height: 38px; width: auto; filter: drop-shadow(0 2px 8px rgba(69, 168, 170, 0.4));">
-                <span style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.75rem; letter-spacing: -0.02em; color: #fff;">Smart Mall<span style="color: #45a8aa;">.</span></span>
+            <a class="footer-brand" href="<?= BASE_PATH ?>/index.php" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo Icon" style="height: 38px; width: auto; filter: drop-shadow(0 2px 8px rgba(69, 168, 170, 0.4));">
+                <span style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.75rem; letter-spacing: 0.04em; color: #fff;">Smart Mall<span style="color: #45a8aa;">.</span></span>
             </a>
             <p>Curating the finest in fashion, electronics, and home living. We bring global trends directly to your doorstep with a focus on quality and security.</p>
             <div class="social-links">
@@ -354,18 +354,18 @@
         <div class="footer-links-column">
             <h4>Shop</h4>
             <ul>
-                <li><a href="/reference/index.php#products">Latest Drops</a></li>
-                <li><a href="/reference/cart.php">Shopping Cart</a></li>
-                <li><a href="/reference/orders.php">Order Status</a></li>
-                <li><a href="/reference/index.php?category=fashion">Style Guide</a></li>
+                <li><a href="<?= BASE_PATH ?>/index.php#products">Latest Drops</a></li>
+                <li><a href="<?= BASE_PATH ?>/cart.php">Shopping Cart</a></li>
+                <li><a href="<?= BASE_PATH ?>/orders.php">Order Status</a></li>
+                <li><a href="<?= BASE_PATH ?>/index.php?category=fashion">Style Guide</a></li>
             </ul>
         </div>
 
         <div class="footer-links-column">
             <h4>Company</h4>
             <ul>
-                <li><a href="/reference/about.php">About Us</a></li>
-                <li><a href="/reference/contact.php">Contact Us</a></li>
+                <li><a href="<?= BASE_PATH ?>/about.php">About Us</a></li>
+                <li><a href="<?= BASE_PATH ?>/contact.php">Contact Us</a></li>
                 <li><a href="#">Careers</a></li>
                 <li><a href="#">Sustainability</a></li>
                 <li><a href="mailto:hello@smartmall.com">hello@smartmall.com</a></li>
@@ -383,7 +383,7 @@ document.getElementById('newsletter-form')?.addEventListener('submit', function(
     const btn = this.querySelector('button');
     btn.disabled = true; btn.textContent = '...';
     const formData = new FormData(this);
-    fetch('/reference/subscribe.php', { method: 'POST', body: formData })
+    fetch(BASE_PATH + '/subscribe.php', { method: 'POST', body: formData })
         .then(r => r.json()).then(d => { showToast(d.message, d.success ? 'success' : 'error'); this.querySelector('input').value = ''; })
         .catch(() => showToast('Connection error. Try again.', 'error'))
         .finally(() => { btn.disabled = false; btn.textContent = 'Subscribe'; });

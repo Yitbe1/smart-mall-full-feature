@@ -28,6 +28,7 @@ if (!empty($token)) {
             $errors['token'] = 'Invalid or expired reset link. Please request a new one.';
         }
     } catch (PDOException $e) {
+        error_log("Reset password token verify error: " . $e->getMessage());
         $errors['database'] = 'Something went wrong. Please try again.';
     }
 } else {
@@ -71,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid) {
 
             $success = true;
         } catch (PDOException $e) {
+            error_log("Reset password update error: " . $e->getMessage());
             $errors['database'] = 'Something went wrong. Please try again.';
         }
     }

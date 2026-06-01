@@ -44,7 +44,7 @@ try {
     $reviews = [];
     $avg_rating = 0;
     $review_count = 0;
-    $stmt_r = $pdo->prepare("SELECT r.review_id, r.rating, r.review, r.created_at, u.name AS user_name FROM reviews r JOIN users u ON r.user_id = u.user_id WHERE r.product_id = :pid ORDER BY r.created_at DESC");
+    $stmt_r = $pdo->prepare("SELECT r.review_id, r.rating, r.comment AS review, r.created_at, u.name AS user_name FROM reviews r JOIN users u ON r.user_id = u.user_id WHERE r.product_id = :pid ORDER BY r.created_at DESC");
     $stmt_r->execute([':pid' => $product_id]);
     $reviews = $stmt_r->fetchAll();
     $review_count = count($reviews);
@@ -63,8 +63,8 @@ include __DIR__ . '/includes/header.php';
     .product-detail-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-        margin: 2rem 0;
+        gap: 2rem;
+        margin: 1.5rem 0;
     }
 
     .product-media-section {
@@ -92,7 +92,7 @@ include __DIR__ . '/includes/header.php';
         position: relative;
         width: 100%;
         aspect-ratio: 1;
-        background: var(--surface);
+        background: var(--bg-light);
         border-radius: var(--radius);
         overflow: hidden;
         box-shadow: var(--shadow-lg);
@@ -106,6 +106,7 @@ include __DIR__ . '/includes/header.php';
         height: 100%;
         object-fit: contain;
         transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        background: var(--bg-light);
     }
 
     .product-large-image:hover img {
@@ -186,8 +187,9 @@ include __DIR__ . '/includes/header.php';
     }
 
     .fullscreen-btn:hover {
-        background: white;
+        background: var(--text-dark);
         transform: scale(1.1);
+        color: var(--bg-light);
     }
 
     /* Lightbox Styles */
@@ -294,7 +296,6 @@ include __DIR__ . '/includes/header.php';
         margin-bottom: 0.5rem;
         font-weight: 800;
         line-height: 1.1;
-        white-space: nowrap;
     }
 
     .product-category-badge {
@@ -322,6 +323,10 @@ include __DIR__ . '/includes/header.php';
         color: var(--primary-color);
         font-weight: bold;
         margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
     }
 
     .product-description-full {
@@ -486,7 +491,7 @@ include __DIR__ . '/includes/header.php';
     }
 
     .product-features {
-        margin-top: 2rem;
+        margin-top: 1.5rem;
         padding: 1.5rem;
         background-color: var(--bg-light);
         border-radius: 10px;
@@ -520,8 +525,7 @@ include __DIR__ . '/includes/header.php';
     /* Responsive */
     @media (min-width: 1200px) {
         .product-detail-container {
-            gap: 4rem;
-            justify-content: center;
+            gap: 2.5rem;
         }
 
         .product-title {
@@ -588,13 +592,48 @@ include __DIR__ . '/includes/header.php';
         }
     }
 
+    .btn-wishlist-detail {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        background: transparent;
+        color: #999;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .btn-wishlist-detail:hover {
+        background: #fff0f0;
+        color: #e74c3c;
+        transform: scale(1.12);
+    }
+    .btn-wishlist-detail.in-wishlist {
+        color: #e74c3c;
+        background: #fff0f0;
+    }
+    .btn-wishlist-detail.in-wishlist:hover {
+        color: #e74c3c;
+        background: #ffe0e0;
+    }
+    .btn-wishlist-detail svg {
+        transition: transform 0.25s ease;
+    }
+    .btn-wishlist-detail:hover svg {
+        transform: scale(1.15);
+    }
+
     @media (max-width: 480px) {
         .product-large-image {
             font-size: 3rem;
         }
 
         .product-detail-container {
-            gap: 0.75rem;
+            gap: 1rem;
             margin: 0.75rem 0;
         }
 
@@ -640,28 +679,7 @@ include __DIR__ . '/includes/header.php';
             margin-bottom: 0.65rem;
         }
 
-    .btn-wishlist-detail {
-        padding: 1rem;
-        background: var(--surface);
-        color: var(--primary-color);
-        border: 2px solid var(--primary-color);
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .btn-wishlist-detail:hover {
-        background: var(--primary-color);
-        color: #fff;
-    }
-    .btn-wishlist-detail.in-wishlist {
-        background: var(--primary-color);
-        color: #fff;
-    }
-    .product-stock-info {
+        .product-stock-info {
             padding: 0.4rem;
             gap: 0.35rem;
             margin-bottom: 0.65rem;
@@ -757,12 +775,19 @@ include __DIR__ . '/includes/header.php';
         <span><?php echo htmlspecialchars($product['name']); ?></span>
     </div>
 
+    <?php if (!empty($_SESSION['success'])): ?>
+        <div class="alert alert-success" style="margin-bottom:1rem;"><?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
+    <?php endif; ?>
+    <?php if (!empty($_SESSION['error'])): ?>
+        <div class="alert alert-danger" style="margin-bottom:1rem;"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+    <?php endif; ?>
+
     <!-- Product Details -->
     <div class="product-detail-container">
         <!-- Media Gallery -->
         <div class="product-media-section">
             <div class="product-large-image" id="main-media-container">
-                <button class="fullscreen-btn" onclick="openLightbox()" title="Full Screen">
+                <button id="fullscreen-btn" class="fullscreen-btn" onclick="openLightbox()" title="Full Screen">
                     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
                     </svg>
@@ -820,7 +845,7 @@ include __DIR__ . '/includes/header.php';
             </div>
 
             <div class="product-price-large">
-                <?php echo smartmall_format_money($product['price']); ?>
+                <span class="price-amount"><?php echo smartmall_format_money($product['price']); ?></span>
             </div>
 
             <div class="product-stock-info">
@@ -850,22 +875,29 @@ include __DIR__ . '/includes/header.php';
                         </svg>
                         Add to Cart
                     </button>
+                    <button class="btn-wishlist-detail <?php echo $in_wishlist ? 'in-wishlist' : ''; ?>" id="wishlist-btn" onclick="toggleWishlist(<?php echo $product['product_id']; ?>)" title="Save to wishlist">
+                        <svg width="22" height="22" fill="<?php echo $in_wishlist ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
                     <button class="btn-buy-detail" onclick="buyNow(<?php echo $product['product_id']; ?>)">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                         Buy Now
                     </button>
+                </div>
+            <?php else: ?>
+                <div class="product-actions-detail">
+                    <button class="btn-add-cart-detail" disabled style="opacity: 0.5;">
+                        Out of Stock
+                    </button>
                     <button class="btn-wishlist-detail <?php echo $in_wishlist ? 'in-wishlist' : ''; ?>" id="wishlist-btn" onclick="toggleWishlist(<?php echo $product['product_id']; ?>)" title="Save to wishlist">
-                        <svg width="20" height="20" fill="<?php echo $in_wishlist ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="22" height="22" fill="<?php echo $in_wishlist ? 'currentColor' : 'none'; ?>" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
                     </button>
                 </div>
-            <?php else: ?>
-                <button class="btn-add-cart-detail" disabled style="opacity: 0.5;">
-                    Out of Stock
-                </button>
             <?php endif; ?>
 
             <div class="product-features">
@@ -876,58 +908,58 @@ include __DIR__ . '/includes/header.php';
                     <li>Easy returns accepted</li>
                 </ul>
             </div>
-
-            <div class="reviews-section">
-                <h2>Customer Reviews <?php if ($review_count > 0): ?><span class="avg-rating"><?php echo str_repeat('★', (int)$avg_rating) . str_repeat('☆', 5 - (int)$avg_rating); ?> <?php echo $avg_rating; ?> (<?php echo $review_count; ?>)</span><?php endif; ?></h2>
-
-                <?php if ($review_count > 0): ?>
-                    <div class="reviews-list">
-                        <?php foreach ($reviews as $rev): ?>
-                            <div class="review-card">
-                                <div class="review-header">
-                                    <strong><?php echo htmlspecialchars($rev['user_name']); ?></strong>
-                                    <span class="review-stars"><?php echo str_repeat('★', (int)$rev['rating']) . str_repeat('☆', 5 - (int)$rev['rating']); ?></span>
-                                    <span class="review-date"><?php echo date('M j, Y', strtotime($rev['created_at'])); ?></span>
-                                </div>
-                                <?php if ($rev['review']): ?>
-                                    <p class="review-text"><?php echo htmlspecialchars($rev['review']); ?></p>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php else: ?>
-                    <p class="no-reviews">No reviews yet. Be the first to review this product!</p>
-                <?php endif; ?>
-
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <div class="review-form">
-                        <h3>Write a Review</h3>
-                        <form method="POST" action="submit_review.php">
-                            <?php csrf_field(); ?>
-                            <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
-                            <div class="star-rating">
-                                <span class="star-label">Your Rating:</span>
-                                <div class="stars-input">
-                                    <?php for ($i = 5; $i >= 1; $i--): ?>
-                                        <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?>>
-                                        <label for="star<?php echo $i; ?>">★</label>
-                                    <?php endfor; ?>
-                                </div>
-                            </div>
-                            <textarea name="review" rows="4" placeholder="Share your thoughts about this product... (optional)"></textarea>
-                            <button type="submit" class="btn-review-submit">Submit Review</button>
-                        </form>
-                    </div>
-                <?php else: ?>
-                    <p class="login-to-review"><a href="/reference/login.php?redirect=product.php&product_id=<?php echo $product_id; ?>">Login</a> to write a review.</p>
-                <?php endif; ?>
-            </div>
         </div>
+    </div>
+
+    <div class="reviews-section">
+        <h2>Customer Reviews <?php if ($review_count > 0): ?><span class="avg-rating"><?php echo str_repeat('★', (int)$avg_rating) . str_repeat('☆', 5 - (int)$avg_rating); ?> <?php echo $avg_rating; ?> (<?php echo $review_count; ?>)</span><?php endif; ?></h2>
+
+        <?php if ($review_count > 0): ?>
+            <div class="reviews-list">
+                <?php foreach ($reviews as $rev): ?>
+                    <div class="review-card">
+                        <div class="review-header">
+                            <strong><?php echo htmlspecialchars($rev['user_name']); ?></strong>
+                            <span class="review-stars"><?php echo str_repeat('★', (int)$rev['rating']) . str_repeat('☆', 5 - (int)$rev['rating']); ?></span>
+                            <span class="review-date"><?php echo date('M j, Y', strtotime($rev['created_at'])); ?></span>
+                        </div>
+                        <?php if ($rev['review']): ?>
+                            <p class="review-text"><?php echo htmlspecialchars($rev['review']); ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p class="no-reviews">No reviews yet. Be the first to review this product!</p>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <div class="review-form">
+                <h3>Write a Review</h3>
+                <form method="POST" action="submit_review.php">
+                    <?php csrf_field(); ?>
+                    <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+                    <div class="star-rating">
+                        <span class="star-label">Your Rating:</span>
+                        <div class="stars-input">
+                            <?php for ($i = 5; $i >= 1; $i--): ?>
+                                <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?>>
+                                <label for="star<?php echo $i; ?>">★</label>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                    <textarea name="review" rows="4" placeholder="Share your thoughts about this product... (optional)"></textarea>
+                    <button type="submit" class="btn-review-submit">Submit Review</button>
+                </form>
+            </div>
+        <?php else: ?>
+            <p class="login-to-review"><a href="<?= BASE_PATH ?>/login.php?redirect=product.php&product_id=<?php echo $product_id; ?>">Login</a> to write a review.</p>
+        <?php endif; ?>
     </div>
 </div>
 
 <style>
-.reviews-section { margin-top: 3rem; }
+.reviews-section { margin-top: 2rem; }
 .reviews-section h2 { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .avg-rating { font-size: 1rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.25rem; }
 .reviews-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
@@ -1025,6 +1057,22 @@ include __DIR__ . '/includes/header.php';
         lbImg.src = currentGallery[currentIndex];
     }
 
+    // Cursor-tracked depth zoom on desktop (disabled on touch devices)
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        const zoomContainer = document.querySelector('.product-large-image');
+        const zoomImg = document.getElementById('main-image');
+        zoomContainer.addEventListener('mousemove', function(e) {
+            if (zoomImg.style.display === 'none') return;
+            const rect = zoomContainer.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            zoomImg.style.transformOrigin = x + '% ' + y + '%';
+        });
+        zoomContainer.addEventListener('mouseleave', function() {
+            zoomImg.style.transformOrigin = 'center center';
+        });
+    }
+
     function switchMedia(type, url, thumbElement) {
         // Update active thumbnail
         document.querySelectorAll('.gallery-thumb').forEach(el => el.classList.remove('active'));
@@ -1034,11 +1082,13 @@ include __DIR__ . '/includes/header.php';
         const vidEl = document.getElementById('main-video');
 
         if (type === 'image') {
+            document.getElementById('fullscreen-btn').style.display = 'flex';
             vidEl.style.display = 'none';
             vidEl.pause();
             imgEl.style.display = 'block';
             imgEl.src = url;
         } else if (type === 'video') {
+            document.getElementById('fullscreen-btn').style.display = 'none';
             imgEl.style.display = 'none';
             vidEl.style.display = 'block';
             vidEl.src = url;
@@ -1087,7 +1137,11 @@ include __DIR__ . '/includes/header.php';
                     document.getElementById('quantity').value = 1;
                     // Update cart count in header
                     const cartCount = document.querySelector('.cart-count');
-                    if (cartCount) cartCount.textContent = parseInt(cartCount.textContent) + parseInt(quantity);
+                    if (cartCount) {
+                        const newCount = parseInt(cartCount.textContent) + parseInt(quantity);
+                        cartCount.textContent = newCount;
+                        cartCount.style.display = 'grid';
+                    }
                 } else {
                     showToast('Error: ' + data.message, 'error');
                 }

@@ -10,16 +10,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
+    $order_id = $subject === 'order' ? (int) ($_POST['order_id'] ?? 0) : 0;
     $message = trim($_POST['message'] ?? '');
 
     if (empty($name) || empty($email) || empty($subject) || empty($message)) {
         $error = 'All fields are required.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
-    } else {
-        // In production, send email or save to database
+    }
+
+    require_once __DIR__ . '/helpers/captcha.php';
+    if (!verify_recaptcha()) {
+        $error = 'Captcha verification failed. Please try again.';
+    }
+
+    if (empty($error)) {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("INSERT INTO contact_messages (name, email, subject, message) VALUES (:name, :email, :subject, :message)");
+        $stmt->execute([':name' => $name, ':email' => $email, ':subject' => $subject, ':message' => $message]);
+
+        if ($subject === 'order') {
+            try {
+                $order_label = $order_id > 0 ? " (Order #$order_id)" : '';
+                $notif_msg = "Order Support$order_label from $name <$email> — " . mb_substr($message, 0, 80);
+                $notif_link = $order_id > 0 ? "admin/manage_orders.php?search=$order_id" : 'admin/manage_orders.php';
+                $pdo->prepare("INSERT INTO notifications (type, message, link) VALUES (?, ?, ?)")
+                    ->execute(['order_support', $notif_msg, $notif_link]);
+            } catch (Throwable $e) {
+                error_log("Notification insert failed: " . $e->getMessage());
+            }
+        }
+        require_once __DIR__ . '/helpers/mail.php';
+        send_mail(
+            'yitbarekteklu5@gmail.com',
+            "Contact: $subject",
+            "From: $name <$email>\nSubject: $subject\n\n$message"
+        );
         $success = 'Thank you for contacting us! We\'ll get back to you within 24 hours.';
-        // Clear form
         $name = $email = $subject = $message = '';
     }
 }
@@ -363,7 +390,9 @@ require_once __DIR__ . '/includes/header.php';
 
         <div class="contact-form-wrapper">
             <h2>Send us a message</h2>
-            <form method="POST" action="">
+            <script src="https://www.google.com/recaptcha/api.js?render=<?php echo htmlspecialchars($_ENV['RECAPTCHA_SITE_KEY'] ?? ''); ?>"></script>
+            <form method="POST" action="" id="contactForm">
+                <?php csrf_field(); ?>
                 <div class="form-group">
                     <label for="name">Full Name *</label>
                     <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name ?? ''); ?>" required>
@@ -386,19 +415,57 @@ require_once __DIR__ . '/includes/header.php';
                     </select>
                 </div>
 
+                <div class="form-group" id="order-id-group" style="display:none;">
+                    <label for="order_id">Order ID</label>
+                    <input type="number" id="order_id" name="order_id" min="1" placeholder="e.g. 42">
+                </div>
+
                 <div class="form-group">
                     <label for="message">Message *</label>
                     <textarea id="message" name="message" required><?php echo htmlspecialchars($message ?? ''); ?></textarea>
                 </div>
 
+                <div class="form-group">
+                    <input type="hidden" name="g-recaptcha-response" id="recaptcha-response">
+                </div>
+                
                 <button type="submit" class="btn-submit">Send Message</button>
             </form>
+            <script>
+            (function() {
+                var siteKey = '<?php echo htmlspecialchars($_ENV['RECAPTCHA_SITE_KEY'] ?? ''); ?>';
+                var form = document.getElementById('contactForm');
+                if (!form) return;
+                grecaptcha.ready(function() {
+                    function refreshToken() {
+                        grecaptcha.execute(siteKey, {action: 'contact'}).then(function(token) {
+                            document.getElementById('recaptcha-response').value = token;
+                        });
+                    }
+                    refreshToken();
+                    setInterval(refreshToken, 90000);
+                });
+                var submitted = false;
+                form.addEventListener('submit', function(e) {
+                    if (submitted) return;
+                    if (document.getElementById('recaptcha-response').value) return;
+                    submitted = true;
+                    e.preventDefault();
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute(siteKey, {action: 'contact'}).then(function(token) {
+                            document.getElementById('recaptcha-response').value = token;
+                            form.submit();
+                        });
+                    });
+                });
+            })();
+            </script>
         </div>
     </div>
 
     <div class="map-section">
         <iframe
-            src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3939.8447!2d38.71513851111218!3d9.054438289163755!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zOcKwMDMnMTYuMCJOIDM4wrA0Mic1NC41IkU!5e0!3m2!1sen!2set!4v1716408497355!5m2!1sen!2set"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7393.505136632543!2d38.711421051504324!3d9.05280311393879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b8798c5d75451%3A0xe35a8f3593d5646a!2sGeneral%20Winget%20Poly%20Technic%20College!5e0!3m2!1sen!2set!4v1780203424102!5m2!1sen!2set"
             width="100%"
             height="400"
             style="border:0; display:block;"
@@ -410,3 +477,13 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
+
+<script>
+    document.getElementById('subject')?.addEventListener('change', function() {
+        const group = document.getElementById('order-id-group');
+        if (group) group.style.display = this.value === 'order' ? 'block' : 'none';
+    });
+    <?php if (($subject ?? '') === 'order'): ?>
+        document.getElementById('order-id-group').style.display = 'block';
+    <?php endif; ?>
+</script>

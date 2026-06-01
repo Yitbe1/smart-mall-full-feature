@@ -10,8 +10,8 @@ info:
     All requests and responses use JSON exclusively.
 
 servers:
-  - url: https://smartmall.unaux.com/api/
-    description: Production server
+  - url: https://your-domain.com/api/
+    description: Production server (update with your domain)
   - url: http://localhost/reference/api/
     description: Local development server
 

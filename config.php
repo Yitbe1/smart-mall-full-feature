@@ -54,8 +54,16 @@ set_exception_handler('smartmall_exception_handler');
 // Session cookie hardening
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    ini_set('session.cookie_secure', '1');
+}
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
+
+// Ensure session is started before any $_SESSION access
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Idle timeout: 30 minutes
 $idle_timeout = 1800;
@@ -63,6 +71,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
     $_SESSION = [];
     session_destroy();
     session_start();
+    session_regenerate_id(true);
 }
 $_SESSION['last_activity'] = time();
 
@@ -70,10 +79,6 @@ $_SESSION['last_activity'] = time();
 if (!isset($_SESSION['_regenerated_at']) || (time() - $_SESSION['_regenerated_at']) > ($idle_timeout * 0.3)) {
     session_regenerate_id(true);
     $_SESSION['_regenerated_at'] = time();
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
 }
 
 // Base URL with sanitized host
@@ -90,6 +95,11 @@ if ($subfolder === '/') {
     $subfolder = '';
 }
 $base_url = $protocol . $host . $subfolder;
+
+// BASE_PATH — use .env override if set, otherwise autodetect from script path
+$base_path_env = $_ENV['BASE_PATH'] ?? '';
+$base_path = $base_path_env !== '' ? $base_path_env : '';
+define('BASE_PATH', $base_path);
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/currency.php';
@@ -130,22 +140,30 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 
 if ($app_env === 'production') {
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.chapa.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://checkout.chapa.co");
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.chapa.co https://accounts.google.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google.com https://www.gstatic.com; frame-src https://checkout.chapa.co https://www.google.com https://accounts.google.com https://www.gstatic.com; connect-src 'self' https://accounts.google.com https://www.google.com https://www.gstatic.com;");
 }
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
 /**
  * Output minifier — compresses HTML output in production.
- * WARNING: Only enable when you've verified it doesn't break your inline JS/CSS.
+ * Preserves newlines inside <script> and <style> so line comments don't break logic.
  */
 function smartmall_minify_output(string $buffer): string
 {
     // Remove HTML comments (except IE conditional comments)
     $buffer = preg_replace('/<!--[^\[].*?-->/s', '', $buffer);
 
+    // Preserve newlines inside <script> and <style> tags (replace with placeholder)
+    $buffer = preg_replace_callback('/<(script|style)\b[^>]*>.*?<\/\1>/is', function ($m) {
+        return str_replace("\n", "\x00\x00\x01", $m[0]);
+    }, $buffer);
+
     // Collapse multiple whitespace between tags
     $buffer = preg_replace('/\s+/', ' ', $buffer);
+
+    // Restore newlines inside script/style content
+    $buffer = str_replace("\x00\x00\x01", "\n", $buffer);
 
     // Restore single space between block elements
     $buffer = preg_replace('/> </', ">\n<", $buffer);

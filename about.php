@@ -17,7 +17,7 @@ try {
     $stats['customers'] = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn();
     $stats['categories'] = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
 } catch (PDOException $e) {
-    // Silently fail, keep zeros
+    error_log("About page stats error: " . $e->getMessage());
 }
 
 require_once __DIR__ . '/includes/header.php';

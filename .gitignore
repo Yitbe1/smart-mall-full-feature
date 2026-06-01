@@ -13,3 +13,10 @@ backups/
 credentials/
 .docs/
 cache/queries/*.cache
+composer
+manage_orders.png
+manage_orders_mobile.png
+docker/Screenshot*
+test-results/
+mail/*.eml
+uploads/product_bulk_*.png

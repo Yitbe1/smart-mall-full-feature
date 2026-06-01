@@ -29,6 +29,15 @@ function handle_category_upload($file_key, $existing_path = '')
 
     $file_info = pathinfo($_FILES[$file_key]['name']);
     $extension = strtolower($file_info['extension']);
+
+    $allowed_mime = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $_FILES[$file_key]['tmp_name']);
+    finfo_close($finfo);
+    if (!in_array($mime, $allowed_mime, true)) {
+        return $existing_path;
+    }
+
     $new_name = 'cat_' . uniqid() . '.' . $extension;
     $dest_path = $upload_dir . $new_name;
 
@@ -123,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
     $pdo = getDB();
     $curr = $pdo->prepare("SELECT image1, image2, image3 FROM categories WHERE category_id = :category_id");
     $curr->execute([':category_id' => $cat_id]);
-    // ...
+    $paths = $curr->fetch(PDO::FETCH_ASSOC);
 
     $image1 = handle_category_upload('upload1', trim($_POST['image1'] ?? ($paths['image1'] ?? '')));
     $image2 = handle_category_upload('upload2', trim($_POST['image2'] ?? ($paths['image2'] ?? '')));
@@ -177,7 +186,6 @@ try {
 }
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<?php include __DIR__ . '/includes/admin_nav.php'; ?>
 
 <style>
     .cat-grid {
@@ -418,48 +426,24 @@ require_once __DIR__ . '/../includes/header.php';
         color: white;
     }
 
-    .cat-back-btn {
-        background: var(--surface);
-        color: var(--secondary-color);
-        border: 1px solid var(--border-color);
-        padding: 0.6rem 1.25rem;
-        border-radius: 12px;
-        font-weight: 600;
+    .back-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 700;
         font-size: 0.85rem;
         text-decoration: none;
-        transition: all 0.2s;
+        border: 1.5px solid var(--input-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        background: var(--surface);
+        color: var(--text-dark);
+        transition: all 0.25s;
     }
 
-    .cat-back-btn:hover {
-        background: var(--primary-light);
+    .back-btn:hover {
         border-color: var(--primary-color);
-    }
-
-    .cat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 1.5rem;
-    }
-
-    .cat-heading {
-        font-family: 'Outfit', sans-serif;
-        font-size: 2.5rem;
-        line-height: 1.1;
-        color: var(--secondary-color);
-        margin: 0;
-    }
-
-    .hero-kicker {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
         color: var(--primary-color);
-        font-weight: 700;
-        display: block;
-        margin-bottom: 0.35rem;
+        background: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
 
     @media (max-width: 980px) {
@@ -473,23 +457,7 @@ require_once __DIR__ . '/../includes/header.php';
             padding-bottom: 0.5rem;
         }
 
-        .cat-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 0.5rem;
-            margin-bottom: 1rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-
-        .cat-heading {
-            font-size: 1.5rem !important;
-        }
-
-        .hero-kicker {
-            font-size: 0.7rem !important;
-        }
-
-        .cat-back-btn {
+        .back-btn {
             padding: 0.4rem 0.8rem !important;
             font-size: 0.75rem;
         }
@@ -644,13 +612,15 @@ require_once __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="container">
-    <div class="cat-header">
-        <div>
-            <span class="hero-kicker">System Management</span>
-            <h1 class="cat-heading">Categories</h1>
-        </div>
-        <a href="dashboard.php" class="cat-back-btn">Back to Dashboard</a>
+<div class="container" style="width: min(1300px, calc(100% - 32px)); padding-top: 4rem;">
+    <div style="text-align:center; padding-bottom:1.5rem;">
+        <h2 style="font-size:2.25rem; font-weight:700; font-family:'Outfit',sans-serif; margin:0; letter-spacing:-0.5px; background:linear-gradient(135deg, var(--text-dark) 0%, var(--primary-color) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1)); position:relative;">
+            Categories
+        </h2>
+        <span style="display:block; width:80px; height:4px; background:linear-gradient(90deg, var(--primary-color), transparent); border-radius:2px; margin:0.5rem auto 0;"></span>
+    </div>
+    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:2rem;">
+        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
     </div>
 
     <?php if ($success): ?>

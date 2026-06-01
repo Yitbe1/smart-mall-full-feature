@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 $orders = [];
 $error = '';
 $success = '';
+$order_search = htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
 
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
@@ -21,10 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $pdo = getDB();
         $order_id = (int) $_POST['order_id'];
         $new_status = $_POST['status'];
-
-        $stmt = $pdo->prepare("UPDATE orders SET status = :status WHERE order_id = :order_id");
-        $stmt->execute([':status' => $new_status, ':order_id' => $order_id]);
-        $success = "Order #$order_id status updated to $new_status";
+        $allowed_statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        if (!in_array($new_status, $allowed_statuses, true)) {
+            $error = "Invalid order status.";
+        } else {
+            $stmt = $pdo->prepare("UPDATE orders SET status = :status WHERE order_id = :order_id");
+            $stmt->execute([':status' => $new_status, ':order_id' => $order_id]);
+            $success = "Order #$order_id status updated to $new_status";
+        }
     } catch (PDOException $e) {
         error_log("Admin manage_orders error (status update): " . $e->getMessage());
         $error = "Error updating order status. Please try again.";
@@ -35,7 +40,7 @@ try {
     $pdo = getDB();
     // Get all orders with payment status for admin - paid orders first
     $stmt = $pdo->query("
-        SELECT o.*, u.name as user_name,
+        SELECT o.*, u.name as user_name, u.email as user_email,
                COALESCE(pay.status, 'paid') as payment_status,
                GROUP_CONCAT(CONCAT(p.name, '::', IFNULL(p.image, ''), '::', oi.quantity, '::', oi.price) SEPARATOR '||') as items_data
         FROM orders o 
@@ -52,6 +57,7 @@ try {
                 ELSE 4
             END,
             o.created_at DESC
+        LIMIT 100
     ");
     $orders = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -60,9 +66,133 @@ try {
 }
 include __DIR__ . '/../includes/header.php';
 ?>
-<?php include __DIR__ . '/includes/admin_nav.php'; ?>
 
 <style>
+    .back-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border: 1.5px solid var(--input-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        background: var(--surface);
+        color: var(--text-dark);
+        transition: all 0.25s;
+    }
+
+    .back-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.9rem;
+        opacity: 0.45;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .search-box:focus-within .search-icon {
+        opacity: 0.8;
+    }
+
+    .search-box input {
+        padding: 0.65rem 2.2rem 0.65rem 2.1rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--primary-color);
+        font-size: 0.85rem;
+        background: var(--input-bg);
+        color: var(--text-dark);
+        min-width: 220px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .search-box .clear-search {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%) scale(0);
+        background: var(--border-color);
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+        line-height: 20px;
+        text-align: center;
+        cursor: pointer;
+        color: var(--text-light);
+        transition: transform 0.2s, opacity 0.2s;
+        opacity: 0;
+        padding: 0;
+    }
+
+    .search-box .clear-search.visible {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+
+    .search-box .clear-search:hover {
+        background: var(--text-light);
+        color: var(--surface);
+    }
+
+    .no-results {
+        display: none;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        margin-top: 1.5rem;
+    }
+
+    .no-results.show {
+        display: block;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .no-results h3 {
+        color: var(--text-dark);
+        margin: 0 0 0.5rem;
+    }
+
+    .no-results p {
+        color: var(--text-light);
+        margin: 0;
+    }
+
+    .orders-table tbody tr.main-order-row {
+        transition: opacity 0.15s;
+    }
+
+    .orders-table tbody tr.hidden-row {
+        display: none;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
     .orders-table {
         width: 100%;
         border-collapse: collapse;
@@ -302,10 +432,13 @@ include __DIR__ . '/../includes/header.php';
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             padding: 0.35rem 0 !important;
             border: none;
             font-size: 0.8rem;
             gap: 0.5rem;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .orders-table tbody tr:not(.details-row) td:before {
@@ -392,11 +525,25 @@ include __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<div class="container" style="width: min(1300px, calc(100% - 32px));">
-    <div
-        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
-        <h1 style="font-family:'Outfit',sans-serif;">Manage Orders</h1>
-        <a href="dashboard.php" style="color:var(--primary-color);font-weight:700;">← Back to Dashboard</a>
+<div class="container" style="width: min(1300px, calc(100% - 32px)); padding-top: 4rem;">
+    <div style="text-align:center; padding-bottom:1.5rem;">
+        <h2 style="font-size:2.25rem; font-weight:700; font-family:'Outfit',sans-serif; margin:0; letter-spacing:-0.5px; background:linear-gradient(135deg, var(--text-dark) 0%, var(--primary-color) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1)); position:relative;">
+            Manage Orders
+        </h2>
+        <span style="display:block; width:80px; height:4px; background:linear-gradient(90deg, var(--primary-color), transparent); border-radius:2px; margin:0.5rem auto 0;"></span>
+    </div>
+    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:2rem;">
+        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+        <div style="margin-left:auto;" class="search-box">
+            <span class="search-icon">&#x1F50D;</span>
+            <input type="text" id="orderSearch" placeholder="Search by ID, customer, or status..." value="<?php echo $order_search; ?>" oninput="filterOrders()">
+            <button class="clear-search" id="clearSearch" onclick="clearOrderSearch()" aria-label="Clear search">&times;</button>
+        </div>
+    </div>
+
+    <div class="no-results" id="noOrderResults">
+        <h3>No orders match your search</h3>
+        <p>Try a different order ID, customer name, or status.</p>
     </div>
 
     <?php if ($success): ?>
@@ -423,7 +570,7 @@ include __DIR__ . '/../includes/header.php';
                 </thead>
                 <tbody>
                     <?php foreach ($orders as $order): ?>
-                        <tr style="cursor: pointer;" onclick="toggleDetails(<?php echo $order['order_id']; ?>)">
+                        <tr class="main-order-row" style="cursor: pointer;" onclick="toggleDetails(<?php echo $order['order_id']; ?>)">
                             <td data-label="Order ID">
                                 <strong>#<?php echo str_pad($order['order_id'], 6, '0', STR_PAD_LEFT); ?></strong>
                                 <button class="btn-view" style="margin-top: 0.4rem;">View Details</button>
@@ -433,6 +580,8 @@ include __DIR__ . '/../includes/header.php';
                                     style="font-size: 1rem;"><?php echo htmlspecialchars($order['first_name'] . ' ' . $order['last_name']); ?></strong><br>
                                 <small
                                     style="color: var(--text-light);"><?php echo htmlspecialchars($order['user_name']); ?></small>
+                                <small
+                                    style="display:block; color: var(--text-light); font-size:0.7rem;"><?php echo htmlspecialchars($order['user_email']); ?></small>
                             </td>
                             <td data-label="Products">
                                 <div style="font-weight: 600; color: var(--primary-color);">
@@ -552,4 +701,49 @@ include __DIR__ . '/../includes/header.php';
             row.style.display = 'table-row';
         }
     }
+
+    function filterOrders() {
+        const input = document.getElementById('orderSearch');
+        const clearBtn = document.getElementById('clearSearch');
+        const filter = input.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.orders-table tbody tr.main-order-row');
+        const noResults = document.getElementById('noOrderResults');
+        let visibleCount = 0;
+
+        clearBtn.classList.toggle('visible', filter.length > 0);
+
+        rows.forEach(row => {
+            const detailId = row.getAttribute('onclick')?.match(/\d+/)?.[0];
+            const detailRow = detailId ? document.getElementById('details-' + detailId) : null;
+            const fullText = row.textContent.toLowerCase() + ' ' + (detailRow ? detailRow.textContent.toLowerCase() : '');
+
+            const match = !filter || fullText.includes(filter);
+            row.classList.toggle('hidden-row', !match);
+            if (detailRow) {
+                detailRow.classList.toggle('hidden-row', !match);
+                if (match && detailRow.style.display === 'table-row') {
+                    detailRow.style.display = 'table-row';
+                } else if (!match) {
+                    detailRow.style.display = 'none';
+                }
+            }
+            if (match) visibleCount++;
+        });
+
+        noResults.classList.toggle('show', visibleCount === 0 && filter.length > 0);
+    }
+
+    function clearOrderSearch() {
+        const input = document.getElementById('orderSearch');
+        input.value = '';
+        filterOrders();
+        input.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('orderSearch');
+        if (input && input.value.trim()) {
+            filterOrders();
+        }
+    });
 </script>

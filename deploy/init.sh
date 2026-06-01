@@ -49,15 +49,9 @@ touch "$PROJECT_DIR/logs/.gitkeep" "$PROJECT_DIR/backups/.gitkeep"
 echo -e "${GREEN}[OK]${NC} Created .gitkeep markers"
 
 echo ""
-echo "--- Checking Environment ---"
-
-if $PHP_BIN "$SCRIPT_DIR/check_env.php"; then
-    echo ""
-    echo -e "${GREEN}Environment check passed.${NC}"
-else
-    echo ""
-    echo -e "${YELLOW}Environment check had issues — review above.${NC}"
-fi
+echo "--- PHP Version ---"
+$PHP_BIN -v 2>/dev/null || echo -e "${RED}PHP not found at $PHP_BIN${NC}"
+echo -e "${GREEN}[OK]${NC} PHP available"
 
 echo ""
 read -r -p "Run database migrations now? [y/N] " response

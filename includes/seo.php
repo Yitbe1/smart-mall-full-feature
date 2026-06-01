@@ -35,7 +35,7 @@ function seo_og_tags(string $title = '', string $description = '', string $url =
         $url = seo_current_url();
     }
     if (empty($image)) {
-        $image = '/reference/assets/images/logo-icon.png';
+        $image = BASE_PATH . '/assets/images/logo-icon.png';
     }
 
     $title       = htmlspecialchars($title);

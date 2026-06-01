@@ -55,6 +55,7 @@
     <a href="reports.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'reports.php') !== false ? 'active' : ''; ?>">Reports</a>
     <a href="manage_categories.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'manage_categories.php') !== false ? 'active' : ''; ?>">Categories</a>
     <a href="manage_orders.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'manage_orders.php') !== false ? 'active' : ''; ?>">Orders</a>
+    <a href="manage_users.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'manage_users.php') !== false ? 'active' : ''; ?>">Users</a>
     <a href="add_product.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'add_product.php') !== false ? 'active' : ''; ?>">Add Product</a>
     <a href="../index.php" style="margin-left: auto; color: var(--text-light);">View Store</a>
 </nav>

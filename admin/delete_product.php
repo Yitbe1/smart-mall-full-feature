@@ -51,6 +51,7 @@ try {
         $_SESSION['error'] = 'Product not found.';
     }
 } catch (PDOException $e) {
+    error_log("Admin delete product error: " . $e->getMessage());
     $_SESSION['error'] = 'Could not delete product. Please try again.';
 }
 

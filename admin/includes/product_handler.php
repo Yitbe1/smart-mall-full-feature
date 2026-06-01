@@ -126,7 +126,7 @@ function handle_additional_images_upload(?array $slide2, ?array $slide3, ?array 
     return $additional_images_names;
 }
 
-function handle_video_upload(?array $file, ?string $existing_video, string $upload_dir): string
+function handle_video_upload(?array $file, ?string $existing_video, string $upload_dir): ?string
 {
     $video_name = $existing_video;
 
@@ -172,14 +172,14 @@ function save_product(PDO $pdo, array $data, bool $is_edit, ?int $product_id = n
             WHERE product_id = :product_id
         ");
         $stmt->execute([
-            ':name'        => $data['name'],
-            ':description' => $data['description'],
-            ':price'       => $data['price'],
-            ':stock'       => $data['stock'],
-            ':image'       => $data['image'],
-            ':category_id' => $data['category_id'],
-            ':additional_images' => $data['additional_images'],
-            ':video'       => $data['video'],
+            ':name'        => $data[':name'],
+            ':description' => $data[':description'],
+            ':price'       => $data[':price'],
+            ':stock'       => $data[':stock'],
+            ':image'       => $data[':image'],
+            ':category_id' => $data[':category_id'],
+            ':additional_images' => $data[':additional_images'],
+            ':video'       => $data[':video'],
             ':product_id'  => $product_id,
         ]);
         return $product_id;
@@ -189,14 +189,14 @@ function save_product(PDO $pdo, array $data, bool $is_edit, ?int $product_id = n
             VALUES (:name, :description, :price, :stock, :image, :category_id, :additional_images, :video)
         ");
         $stmt->execute([
-            ':name'        => $data['name'],
-            ':description' => $data['description'],
-            ':price'       => $data['price'],
-            ':stock'       => $data['stock'],
-            ':image'       => $data['image'],
-            ':category_id' => $data['category_id'],
-            ':additional_images' => $data['additional_images'],
-            ':video'       => $data['video'],
+            ':name'        => $data[':name'],
+            ':description' => $data[':description'],
+            ':price'       => $data[':price'],
+            ':stock'       => $data[':stock'],
+            ':image'       => $data[':image'],
+            ':category_id' => $data[':category_id'],
+            ':additional_images' => $data[':additional_images'],
+            ':video'       => $data[':video'],
         ]);
         return (int)$pdo->lastInsertId();
     }

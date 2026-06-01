@@ -14,14 +14,11 @@ $orders = [];
 try {
     $pdo = getDB();
 
-    // Get all user orders with paid status only
     $stmt = $pdo->prepare("
-        SELECT o.order_id, o.total_price, o.status, o.created_at, o.payment_method
-        FROM orders o
-        LEFT JOIN payments p ON o.order_id = p.order_id
-        WHERE o.user_id = :user_id 
-        AND COALESCE(p.status, 'paid') = 'paid'
-        ORDER BY o.created_at DESC
+        SELECT order_id, total_price, status, created_at, payment_method
+        FROM orders
+        WHERE user_id = :user_id 
+        ORDER BY created_at DESC
     ");
     $stmt->execute([':user_id' => $user_id]);
     $orders = $stmt->fetchAll();
@@ -66,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order'])) {
             $_SESSION['error'] = "Order cannot be cancelled at this stage.";
         }
     } catch (PDOException $e) {
+        error_log("Orders cancel error: " . $e->getMessage());
         $_SESSION['error'] = "Error cancelling order.";
     }
     header('Location: orders.php');

@@ -35,6 +35,7 @@ try {
     $tax         = $total_price * 0.1;
     $final_total = $total_price + $tax;
 } catch (PDOException $e) {
+    error_log("Checkout cart load error: " . $e->getMessage());
     $errors[] = 'Could not load cart. Please try again.';
     $tax         = 0;
     $final_total = 0;
@@ -148,8 +149,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     ':price'      => $item['price'],
                 ]);
 
-                $stmt = $pdo->prepare("UPDATE products SET stock = stock - :qty WHERE product_id = :product_id");
-                $stmt->execute([':qty' => $item['quantity'], ':product_id' => $item['product_id']]);
+                if ($payment_method !== 'chapa') {
+                    $stmt = $pdo->prepare("UPDATE products SET stock = stock - :qty WHERE product_id = :product_id");
+                    $stmt->execute([':qty' => $item['quantity'], ':product_id' => $item['product_id']]);
+                }
             }
 
             // 🟡 CHAPA PAYMENT: Do NOT clear cart here — wait for callback verification
@@ -217,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     echo '<p><strong>HTTP Code:</strong> ' . htmlspecialchars($httpCode) . '</p>';
                     echo '<p><strong>Curl Error:</strong> ' . htmlspecialchars($curlError ?: 'None') . '</p>';
                     echo '<pre style="background:#f8f9fa; padding:10px; border-radius:4px; overflow:auto;">' . htmlspecialchars($rawResponse) . '</pre>';
-                    echo '<p><a href="/reference/checkout.php">← Back to Checkout</a></p>';
+                    echo '<p><a href="' . BASE_PATH . '/checkout.php">← Back to Checkout</a></p>';
                     echo '</div>';
                     exit;
                 }

@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_item'])) {
             $_SESSION['success'] = 'Item removed from cart';
         }
     } catch (PDOException $e) {
+        error_log("Cart remove error: " . $e->getMessage());
         $_SESSION['cart_error'] = 'Could not remove item. Please try again.';
     }
     redirect('/cart.php');
@@ -69,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_quantity'])) {
             $_SESSION['cart_error'] = 'Requested quantity exceeds available stock (' . $cart['stock'] . ' available).';
         }
     } catch (PDOException $e) {
+        error_log("Cart update quantity error: " . $e->getMessage());
         $_SESSION['cart_error'] = 'Could not update quantity. Please try again.';
     }
     redirect('/cart.php');
@@ -94,6 +96,7 @@ try {
         $total_price += $item['price'] * $item['quantity'];
     }
 } catch (PDOException $e) {
+    error_log("Cart load error: " . $e->getMessage());
     $error = 'Could not load cart. Please try again.';
 }
 

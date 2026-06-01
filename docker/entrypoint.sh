@@ -24,7 +24,7 @@ if [ -f /var/www/html/deploy/migrate.php ]; then
     echo "--> Waiting for MySQL at ${DB_HOST}:3306 ..."
     # Retry loop — MySQL may still be starting up
     for i in $(seq 1 30); do
-        if php -r "new PDO('mysql:host=${DB_HOST};dbname=${DB_NAME};charset=utf8mb4', '${DB_USER}', '${DB_PASS}');" 2>/dev/null; then
+        if php -r "new PDO('mysql:host=${DB_HOST};dbname=${DB_NAME};charset=utf8mb4', '${DB_USER}', '${DB_PASS}'); echo 'OK';" >/dev/null 2>&1; then
             echo "--> MySQL is ready."
             break
         fi

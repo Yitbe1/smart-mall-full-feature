@@ -8,6 +8,12 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <style>
+:root {
+    --logo-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+[data-theme='dark'] {
+    --logo-shadow: 0 8px 24px rgba(255,255,255,0.06);
+}
 .dl-section {
     padding: 4rem 0 3rem;
 }
@@ -21,22 +27,25 @@ require_once __DIR__ . '/includes/header.php';
 .dl-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .dl-info .header-logo {
-    width: clamp(56px, 10vw, 100px);
-    height: clamp(56px, 10vw, 100px);
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    border-radius: clamp(14px, 2.5vw, 24px);
+    width: clamp(48px, 8vw, 80px);
+    height: clamp(48px, 8vw, 80px);
+    background: var(--surface);
+    border-radius: clamp(12px, 2vw, 20px);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
-    box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+    box-shadow: var(--logo-shadow);
 }
-.dl-info .header-logo svg {
-    width: clamp(28px, 5vw, 50px);
-    height: clamp(28px, 5vw, 50px);
-    color: #fff;
+.dl-info .header-logo img {
+    width: clamp(36px, 6vw, 60px);
+    height: clamp(36px, 6vw, 60px);
+    object-fit: contain;
 }
 .dl-info h1 {
     font-size: clamp(1.4rem, 5vw, 2.5rem);
@@ -86,6 +95,10 @@ require_once __DIR__ . '/includes/header.php';
     justify-content: center;
     flex-shrink: 0;
 }
+.dl-card .dl-icon.blue {
+    background: #3b82f6;
+    color: #fff;
+}
 .dl-card .dl-icon.green {
     background: #34a853;
     color: #fff;
@@ -113,6 +126,10 @@ require_once __DIR__ . '/includes/header.php';
     border-radius: 20px;
     flex-shrink: 0;
 }
+.dl-card .dl-tag.blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 .dl-card .dl-tag.green {
     background: #e6f7e6;
     color: #2e7d32;
@@ -120,6 +137,41 @@ require_once __DIR__ . '/includes/header.php';
 .dl-card .dl-tag.gray {
     background: #f0f0f0;
     color: #aaa;
+}
+.dl-qr-card {
+    gap: 0.75rem;
+}
+.dl-qr-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 4px;
+}
+.qr-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+.qr-modal.show {
+    display: flex;
+}
+.qr-modal img {
+    width: 300px;
+    height: 300px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+}
+.qr-modal-close {
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
 }
 .dl-card.disabled {
     cursor: not-allowed;
@@ -183,20 +235,20 @@ require_once __DIR__ . '/includes/header.php';
     border-radius: 2px;
 }
 .phone-frame .phone-logo {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border-radius: 24px;
+    width: 80px;
+    height: 80px;
+    background: var(--surface);
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1rem;
-    box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+    box-shadow: var(--logo-shadow);
 }
-.phone-frame .phone-logo svg {
-    width: 50px;
-    height: 50px;
-    color: #fff;
+.phone-frame .phone-logo img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 .phone-frame h3 {
     color: #fff;
@@ -242,7 +294,7 @@ require_once __DIR__ . '/includes/header.php';
         padding: 2rem 1.25rem;
     }
     .phone-frame .phone-logo { width: 64px; height: 64px; }
-    .phone-frame .phone-logo svg { width: 32px; height: 32px; }
+    .phone-frame .phone-logo img { width: 32px; height: 32px; }
     .phone-frame h3 { font-size: 1.15rem; }
     .phone-frame .notch { width: 90px; height: 20px; }
     .dl-info h1 { font-size: 1.7rem; }
@@ -258,7 +310,7 @@ require_once __DIR__ . '/includes/header.php';
         padding: 1.5rem 1rem;
     }
     .phone-frame .phone-logo { width: 56px; height: 56px; }
-    .phone-frame .phone-logo svg { width: 28px; height: 28px; }
+    .phone-frame .phone-logo img { width: 28px; height: 28px; }
     .phone-frame h3 { font-size: 1rem; }
 }
 </style>
@@ -267,12 +319,10 @@ require_once __DIR__ . '/includes/header.php';
     <div class="dl-inner">
         <div class="dl-info">
             <div class="header-logo">
-                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
+                <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo">
             </div>
 
-            <h1><span>Smart Mall</span></h1>
+            <h1><span style="font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.04em">Smart Mall</span></h1>
 
             <p class="desc">
                 Shop smarter, faster, and anywhere. Download the official Smart Mall app for the best shopping experience on your phone.
@@ -280,16 +330,14 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="dl-cards">
                 <a href="download_app.php" class="dl-card">
-                    <div class="dl-icon green">
-                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
-                        </svg>
+                    <div class="dl-icon" style="background:transparent;padding:0;width:auto;height:auto;">
+                        <img src="<?= BASE_PATH ?>/assets/images/Google-play-icon.png" alt="Google Play" style="width:44px;height:44px;object-fit:contain;">
                     </div>
                     <div class="dl-body">
-                        <div class="top">Download APK</div>
-                        <div class="name">Android</div>
+                        <div class="top">Get it on</div>
+                        <div class="name">Google Play</div>
                     </div>
-                    <span class="dl-tag green"><?= $apk_size ?> MB</span>
+                    <span class="dl-tag blue">APK <?= $apk_size ?> MB</span>
                 </a>
 
                 <div class="dl-card disabled">
@@ -304,6 +352,19 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <span class="dl-tag gray">Soon</span>
                 </div>
+
+                <div class="dl-card dl-qr-card" onclick="openQrModal()">
+                    <img src="<?= BASE_PATH ?>/assets/images/qr-code.png" alt="QR Code" class="dl-qr-img" loading="lazy">
+                    <div class="dl-body">
+                        <div class="top">Scan with your phone</div>
+                        <div class="name">QR Code</div>
+                    </div>
+                    <span class="dl-tag green" style="background:#e8d5f5;color:#6f42c1;">Tap to enlarge</span>
+                </div>
+            </div>
+            <div id="qrModal" class="qr-modal" onclick="closeQrModal()">
+                <span class="qr-modal-close">&times;</span>
+                <img src="<?= BASE_PATH ?>/assets/images/qr-code.png" alt="QR Code" id="qrModalImg">
             </div>
 
             <div class="dl-meta">
@@ -327,11 +388,9 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="notch"></div>
                 <div class="home-indicator"></div>
                 <div class="phone-logo">
-                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
+                    <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo">
                 </div>
-                <h3>Smart Mall</h3>
+                <h3 style="font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.04em">Smart Mall</h3>
                 <p>Your premium marketplace,<br>now in your pocket.</p>
                 <div class="phone-dots">
                     <span></span>
@@ -343,4 +402,8 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<script>
+function openQrModal() { document.getElementById('qrModal').classList.add('show'); }
+function closeQrModal() { document.getElementById('qrModal').classList.remove('show'); }
+</script>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

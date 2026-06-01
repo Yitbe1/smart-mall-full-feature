@@ -42,7 +42,7 @@ try {
         exit;
     }
 
-    $stmt = $pdo->prepare("INSERT INTO reviews (product_id, user_id, rating, review) VALUES (:pid, :uid, :rating, :review)");
+    $stmt = $pdo->prepare("INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (:pid, :uid, :rating, :review)");
     $stmt->execute([
         ':pid' => $product_id,
         ':uid' => $_SESSION['user_id'],

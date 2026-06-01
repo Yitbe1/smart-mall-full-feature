@@ -98,7 +98,7 @@ function render_product_form(?array $product, array $categories, array $errors, 
         flex: 1;
         padding: 0.95rem;
         border: none;
-        border-radius: 5px;
+        border-radius: 12px;
         font-size: 1rem;
         font-weight: 800;
         cursor: pointer;
@@ -112,15 +112,35 @@ function render_product_form(?array $product, array $categories, array $errors, 
     }
 
     .btn-cancel {
-        background-color: var(--bg-light);
+        background: var(--surface);
         color: var(--text-dark) !important;
-        border: 1px solid var(--border-color);
+        border: 1.5px solid var(--border-color);
     }
 
     .form-hint {
         color: var(--text-light);
         font-size: 0.86rem;
         margin-top: 0.35rem;
+    }
+
+    .back-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border: 1.5px solid var(--input-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        background: var(--surface);
+        color: var(--text-dark);
+        transition: all 0.25s;
+    }
+
+    .back-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
 
     @media (max-width: 520px) {
@@ -277,9 +297,17 @@ function render_product_form(?array $product, array $categories, array $errors, 
     }
 </style>
 
-<div class="container">
+<div class="container" style="width: min(1300px, calc(100% - 32px)); padding-top: 4rem;">
+    <div style="text-align:center; padding-bottom:0.5rem;">
+        <h2 style="font-size:2.25rem; font-weight:700; font-family:'Outfit',sans-serif; margin:0; letter-spacing:-0.5px; background:linear-gradient(135deg, var(--text-dark) 0%, var(--primary-color) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1)); position:relative;">
+            <?php echo $is_edit ? 'Edit Product' : 'Add New Product'; ?>
+        </h2>
+        <span style="display:block; width:80px; height:4px; background:linear-gradient(90deg, var(--primary-color), transparent); border-radius:2px; margin:0.5rem auto 0;"></span>
+    </div>
+    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:0.5rem;">
+        <a href="dashboard.php" class="back-btn">← Back to Dashboard</a>
+    </div>
     <div class="form-container">
-        <h2><?php echo $is_edit ? 'Edit Product' : 'Add New Product'; ?></h2>
         <p class="form-intro">Upload a product image and add clear details so customers can shop confidently.</p>
 
         <?php if (!empty($errors)): ?>

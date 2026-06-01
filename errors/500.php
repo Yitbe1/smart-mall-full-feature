@@ -18,7 +18,7 @@
     <div class="card">
         <h1>Something went wrong</h1>
         <p>We encountered an unexpected error. Our team has been notified. Please try again shortly.</p>
-        <a href="/reference/index.php" class="btn">Go to Homepage</a>
+        <a href="<?= BASE_PATH ?>/index.php" class="btn">Go to Homepage</a>
     </div>
 </body>
 </html>

@@ -7,9 +7,6 @@ $data = json_decode($raw, true);
 
 $tx_ref   = $data['tx_ref']         ?? ($_GET['tx_ref']          ?? '');
 $status   = $data['status']         ?? ($_GET['status']          ?? '');
-$chapa_id = $data['id']             ?? ($_GET['id']              ?? '');
-$amount   = $data['amount']         ?? ($_GET['amount']          ?? 0);
-$currency = $data['currency']       ?? ($_GET['currency']        ?? 'ETB');
 
 $header_signature = $_SERVER['HTTP_X_CHAPA_SIGNATURE'] ?? '';
 
@@ -41,27 +38,43 @@ if (!$payment) {
     exit;
 }
 
-if ($status === 'success' || ($data['status'] ?? '') === 'complete') {
-    if ($payment['payment_status'] !== 'completed') {
-        $pdo->prepare("UPDATE payments SET payment_status = 'completed', chapa_tx_id = :chapa_id, updated_at = NOW() WHERE tx_ref = :tx_ref")
-           ->execute([':chapa_id' => $chapa_id, ':tx_ref' => $tx_ref]);
+try {
+    $pdo->beginTransaction();
 
-        $pdo->prepare("UPDATE orders SET status = 'paid' WHERE order_id = :oid")
-           ->execute([':oid' => $payment['order_id']]);
+    // Lock the row to prevent race conditions
+    $stmt = $pdo->prepare("SELECT * FROM payments WHERE tx_ref = :tx_ref LIMIT 1 FOR UPDATE");
+    $stmt->execute([':tx_ref' => $tx_ref]);
+    $payment = $stmt->fetch();
 
-        $pdo->prepare("UPDATE products p
-            JOIN order_items oi ON oi.product_id = p.product_id
-            SET p.stock = p.stock - oi.quantity
-            WHERE oi.order_id = :oid")
+    if ($status === 'success' || ($data['status'] ?? '') === 'complete') {
+        if ($payment['status'] !== 'paid') {
+            $pdo->prepare("UPDATE payments SET status = 'paid', paid_at = NOW() WHERE tx_ref = :tx_ref")
+               ->execute([':tx_ref' => $tx_ref]);
+
+            $pdo->prepare("UPDATE orders SET status = 'processing' WHERE order_id = :oid")
+               ->execute([':oid' => $payment['order_id']]);
+
+            $pdo->prepare("UPDATE products p
+                JOIN order_items oi ON oi.product_id = p.product_id
+                SET p.stock = p.stock - oi.quantity
+                WHERE oi.order_id = :oid")
+               ->execute([':oid' => $payment['order_id']]);
+        }
+        $pdo->commit();
+        http_response_code(200);
+        echo 'OK';
+    } else {
+        $pdo->prepare("UPDATE payments SET status = 'failed' WHERE tx_ref = :tx_ref")
+           ->execute([':tx_ref' => $tx_ref]);
+        $pdo->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = :oid")
            ->execute([':oid' => $payment['order_id']]);
+        $pdo->commit();
+        http_response_code(200);
+        echo 'Payment not successful';
     }
-    http_response_code(200);
-    echo 'OK';
-} else {
-    $pdo->prepare("UPDATE payments SET payment_status = 'failed', updated_at = NOW() WHERE tx_ref = :tx_ref")
-       ->execute([':tx_ref' => $tx_ref]);
-    $pdo->prepare("UPDATE orders SET status = 'failed' WHERE order_id = :oid")
-       ->execute([':oid' => $payment['order_id']]);
-    http_response_code(200);
-    echo 'Payment not successful';
+} catch (Exception $e) {
+    $pdo->rollBack();
+    error_log("Chapa callback transaction failed: " . $e->getMessage());
+    http_response_code(500);
+    echo 'Internal error';
 }

@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_id'])) {
         $stmt->execute([':id' => (int)$_POST['remove_id'], ':uid' => $user_id]);
         $_SESSION['success'] = 'Item removed from wishlist.';
     } catch (PDOException $e) {
+        error_log("Wishlist remove error: " . $e->getMessage());
         $_SESSION['error'] = 'Error removing item.';
     }
     header('Location: wishlist.php');
@@ -140,7 +141,11 @@ function addToCart(productId) {
         if (d.success) {
             showToast('Added to cart!', 'success');
             const cc = document.querySelector('.cart-count');
-            if (cc) cc.textContent = parseInt(cc.textContent) + 1;
+            if (cc) {
+                const newCount = parseInt(cc.textContent) + 1;
+                cc.textContent = newCount;
+                cc.style.display = 'grid';
+            }
         } else {
             showToast(d.message || 'Error', 'error');
         }

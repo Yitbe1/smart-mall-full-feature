@@ -20,6 +20,21 @@ function smartmall_supported_currencies(): array
 }
 
 /**
+ * Return the flag emoji for a given currency code.
+ *
+ * @param string $currency Currency code (e.g. "USD", "ETB")
+ * @return string Flag emoji
+ */
+function smartmall_currency_flag(string $currency): string
+{
+    $flags = [
+        'USD' => "\u{1F1FA}\u{1F1F8}",
+        'ETB' => "\u{1F1EA}\u{1F1F9}",
+    ];
+    return $flags[$currency] ?? '';
+}
+
+/**
  * Get the user's selected display currency from session.
  * Falls back to the base currency (USD) if none selected or invalid.
  *

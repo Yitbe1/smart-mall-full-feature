@@ -2,6 +2,13 @@
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
+session_start();
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['error' => 'Forbidden']);
+    exit;
+}
+
 $status = 'ok';
 $checks = [];
 $httpCode = 200;
@@ -41,6 +48,7 @@ try {
         'user_count' => $userCount,
     ];
 } catch (Throwable $e) {
+    error_log("Health check error: " . $e->getMessage());
     $status = 'degraded';
     $httpCode = 503;
     $checks['database'] = [

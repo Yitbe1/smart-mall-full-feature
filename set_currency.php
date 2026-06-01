@@ -4,7 +4,7 @@ require_once __DIR__ . '/config.php';
 $currency = $_POST['currency'] ?? $_GET['currency'] ?? SMARTMALL_BASE_CURRENCY;
 smartmall_set_selected_currency((string)$currency);
 
-$fallback = '/reference/index.php';
+$fallback = BASE_PATH . '/index.php';
 $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? ($_SERVER['HTTP_REFERER'] ?? $fallback);
 $redirect = str_replace(["\r", "\n"], '', (string)$redirect);
 

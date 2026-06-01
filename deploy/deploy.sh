@@ -11,12 +11,14 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 DRY_RUN=false
 MIGRATE_ONLY=false
+QUICK=false
 CHANGED_FILES=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run) DRY_RUN=true; shift ;;
         --migrate) MIGRATE_ONLY=true; shift ;;
+        --quick) QUICK=true; shift ;;
         --) shift; CHANGED_FILES+=("$@"); break ;;
         *) CHANGED_FILES+=("$1"); shift ;;
     esac
@@ -129,8 +131,8 @@ fi
 echo ""
 echo "--- Step 3: Running Tests ---"
 
-if [ "$MIGRATE_ONLY" = true ]; then
-    info "Skipping tests (--migrate mode)"
+if [ "$MIGRATE_ONLY" = true ] || [ "$QUICK" = true ]; then
+    info "Skipping tests ($([ "$MIGRATE_ONLY" = true ] && echo '--migrate' || echo '--quick') mode)"
 else
     if $PHP_BIN "$PROJECT_DIR/tests/run.php"; then
         ok "All tests passed"

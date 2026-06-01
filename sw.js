@@ -1,8 +1,8 @@
 const CACHE = 'smartmall-v1';
 const ASSETS = [
-    '/',
-    '/offline.html',
-    '/assets/images/logo-icon.png'
+    '.',
+    'offline.html',
+    'assets/images/logo-icon.png'
 ];
 
 self.addEventListener('install', (e) => {

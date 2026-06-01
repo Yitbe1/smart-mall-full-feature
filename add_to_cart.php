@@ -57,5 +57,6 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Item added to cart']);
 } catch (Exception $e) {
+    error_log("Add to cart error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Could not add item to cart. Please try again.']);
 }

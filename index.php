@@ -16,9 +16,7 @@ try {
     $pdo = getDB();
 
     // Load categories from DB
-    require_once __DIR__ . '/includes/cache.php';
-
-    $categories = cache_query_results($pdo, "SELECT * FROM categories ORDER BY name", [], 600);
+    $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
     // Build category map by slug
     $cat_map = [];
@@ -62,7 +60,9 @@ try {
         $query .= " ORDER BY p.created_at DESC";
     }
 
-    $products = cache_query_results($pdo, $query, $params, $search_value ? 30 : 120);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log("Smart Mall index.php: " . $e->getMessage());
     $error = 'Could not load products. Please try again.';
@@ -77,6 +77,7 @@ include __DIR__ . '/includes/header.php';
         border: 1px solid var(--border-color);
         border-radius: 24px;
         padding: 1.5rem 2rem;
+        margin-top: 2rem;
         box-shadow: var(--shadow-lg);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         display: grid;
@@ -984,7 +985,7 @@ include __DIR__ . '/includes/header.php';
         background: var(--surface);
         padding: 0.75rem 1rem;
         border-radius: 100px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--primary-color);
         box-shadow: var(--shadow-lg);
         max-width: 900px;
         width: 100%;
@@ -1715,23 +1716,24 @@ include __DIR__ . '/includes/header.php';
                     if (count($top_products) > 0):
                         $first_product = $top_products[0];
                         foreach ($top_products as $product):
-                            $image = isset($product['image']) && $product['image'] ? '/reference/uploads/' . $product['image'] : '/reference/assets/images/logo-icon.png';
+                            $image = isset($product['image']) && $product['image'] ? BASE_PATH . '/uploads/' . $product['image'] : BASE_PATH . '/assets/images/logo-icon.png';
                 ?>
-                            <a href="/reference/product.php?product_id=<?php echo $product['product_id']; ?>" class="slider-item">
+                            <a href="<?= BASE_PATH ?>/product.php?product_id=<?php echo $product['product_id']; ?>" class="slider-item">
                                 <img loading="lazy" src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             </a>
                         <?php
                         endforeach;
                         // Clone first item for seamless loop
-                        $image_clone = isset($first_product['image']) && $first_product['image'] ? '/reference/uploads/' . $first_product['image'] : '/reference/assets/images/logo-icon.png';
+                        $image_clone = isset($first_product['image']) && $first_product['image'] ? BASE_PATH . '/uploads/' . $first_product['image'] : BASE_PATH . '/assets/images/logo-icon.png';
                         ?>
-                        <a href="/reference/product.php?product_id=<?php echo $first_product['product_id']; ?>" class="slider-item slider-clone">
+                        <a href="<?= BASE_PATH ?>/product.php?product_id=<?php echo $first_product['product_id']; ?>" class="slider-item slider-clone">
                             <img loading="lazy" src="<?php echo htmlspecialchars($image_clone); ?>" alt="<?php echo htmlspecialchars($first_product['name']); ?>">
                         </a>
                 <?php
                     endif;
                 } catch (PDOException $e) {
-                    echo '<div class="slider-item"><img loading="lazy" src="/reference/assets/images/logo-icon.png" alt="Smart Mall"></div>';
+                    error_log("Index slider error: " . $e->getMessage());
+                    echo '<div class="slider-item"><img loading="lazy" src="' . BASE_PATH . '/assets/images/logo-icon.png" alt="Smart Mall"></div>';
                 }
                 ?>
             </div>
@@ -1751,9 +1753,9 @@ include __DIR__ . '/includes/header.php';
                 // Collect images from DB, fallback to high-quality Unsplash defaults if empty
                 // Collect images from DB, prepend /uploads/ path, fallback to Unsplash if empty
                 $slides = [];
-                if (!empty($cat['image1'])) $slides[] = '/reference/uploads/' . $cat['image1'];
-                if (!empty($cat['image2'])) $slides[] = '/reference/uploads/' . $cat['image2'];
-                if (!empty($cat['image3'])) $slides[] = '/reference/uploads/' . $cat['image3'];
+                if (!empty($cat['image1'])) $slides[] = BASE_PATH . '/uploads/' . $cat['image1'];
+                if (!empty($cat['image2'])) $slides[] = BASE_PATH . '/uploads/' . $cat['image2'];
+                if (!empty($cat['image3'])) $slides[] = BASE_PATH . '/uploads/' . $cat['image3'];
                 ?>
                 <a
                     class="category-card <?php echo $category_slug === $slug ? 'is-active' : ''; ?>"
@@ -1871,7 +1873,7 @@ include __DIR__ . '/includes/header.php';
                                             <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
                                             Active
                                         </div>
-                                        <span class="admin-edit-btn" title="Edit Product" onclick="event.stopPropagation(); location.href='admin/add_product.php?product_id=<?php echo $product['product_id']; ?>'" style="display: inline-flex; cursor: pointer;">
+                                        <span class="admin-edit-btn" title="Edit Product" onclick="event.stopPropagation(); event.preventDefault(); location.href='admin/add_product.php?product_id=<?php echo $product['product_id']; ?>'" style="display: inline-flex; cursor: pointer;">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                                 <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
@@ -2066,7 +2068,11 @@ include __DIR__ . '/includes/header.php';
                     showToast('Product added to cart!', 'success');
                     // Optional: Update cart count without reload
                     const cartCount = document.querySelector('.cart-count');
-                    if (cartCount) cartCount.textContent = parseInt(cartCount.textContent) + 1;
+                    if (cartCount) {
+                        const newCount = parseInt(cartCount.textContent) + 1;
+                        cartCount.textContent = newCount;
+                        cartCount.style.display = 'grid';
+                    }
                 } else {
                     showToast('Error adding to cart: ' + data.message, 'error');
                 }
