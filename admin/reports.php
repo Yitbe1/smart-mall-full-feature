@@ -513,7 +513,7 @@ include __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 </div>
 
-<script src="../assets/js/chart.umd.min.js"></script>
+<script src="../assets/chart.umd.min.js"></script>
 <script>
     (function() {
         var currencySymbol = <?php echo json_encode($selected_currency === 'ETB' ? 'ETB ' : '$'); ?>;

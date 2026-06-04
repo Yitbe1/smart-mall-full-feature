@@ -319,7 +319,7 @@ require_once __DIR__ . '/includes/header.php';
     <div class="dl-inner">
         <div class="dl-info">
             <div class="header-logo">
-                <img src="assets/images/logo-icon.png" alt="Smart Mall Logo">
+                <img src="assets/logo-icon.png" alt="Smart Mall Logo">
             </div>
 
             <h1><span style="font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.04em">Smart Mall</span></h1>
@@ -331,7 +331,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="dl-cards">
                 <a href="download_app.php" class="dl-card">
                     <div class="dl-icon" style="background:transparent;padding:0;width:auto;height:auto;">
-                        <img src="assets/images/Google-play-icon.png" alt="Google Play" style="width:44px;height:44px;object-fit:contain;">
+                        <img src="assets/Google-play-icon.png" alt="Google Play" style="width:44px;height:44px;object-fit:contain;">
                     </div>
                     <div class="dl-body">
                         <div class="top">Get it on</div>
@@ -354,7 +354,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="dl-card dl-qr-card" onclick="openQrModal()">
-                    <img src="assets/images/qr-code.png" alt="QR Code" class="dl-qr-img" loading="lazy">
+                    <img src="assets/qr-code.png" alt="QR Code" class="dl-qr-img" loading="lazy">
                     <div class="dl-body">
                         <div class="top">Scan with your phone</div>
                         <div class="name">QR Code</div>
@@ -364,7 +364,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <div id="qrModal" class="qr-modal" onclick="closeQrModal()">
                 <span class="qr-modal-close">&times;</span>
-                <img src="assets/images/qr-code.png" alt="QR Code" id="qrModalImg">
+                <img src="assets/qr-code.png" alt="QR Code" id="qrModalImg">
             </div>
 
             <div class="dl-meta">
@@ -388,7 +388,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="notch"></div>
                 <div class="home-indicator"></div>
                 <div class="phone-logo">
-                    <img src="assets/images/logo-icon.png" alt="Smart Mall Logo">
+                    <img src="assets/logo-icon.png" alt="Smart Mall Logo">
                 </div>
                 <h3 style="font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:0.04em">Smart Mall</h3>
                 <p>Your premium marketplace,<br>now in your pocket.</p>

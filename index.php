@@ -1716,7 +1716,7 @@ include __DIR__ . '/includes/header.php';
                     if (count($top_products) > 0):
                         $first_product = $top_products[0];
                         foreach ($top_products as $product):
-                            $image = isset($product['image']) && $product['image'] ? get_product_image_url($product['image']) : base_url_path('/assets/images/logo-icon.png');
+                            $image = isset($product['image']) && $product['image'] ? get_product_image_url($product['image']) : base_url_path('/assets/logo-icon.png');
                 ?>
                             <a href="product.php?product_id=<?php echo $product['product_id']; ?>" class="slider-item">
                                 <img loading="lazy" src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
@@ -1724,7 +1724,7 @@ include __DIR__ . '/includes/header.php';
                         <?php
                         endforeach;
                         // Clone first item for seamless loop
-                        $image_clone = isset($first_product['image']) && $first_product['image'] ? get_product_image_url($first_product['image']) : base_url_path('/assets/images/logo-icon.png');
+                        $image_clone = isset($first_product['image']) && $first_product['image'] ? get_product_image_url($first_product['image']) : base_url_path('/assets/logo-icon.png');
                         ?>
                         <a href="product.php?product_id=<?php echo $first_product['product_id']; ?>" class="slider-item slider-clone">
                             <img loading="lazy" src="<?php echo htmlspecialchars($image_clone); ?>" alt="<?php echo htmlspecialchars($first_product['name']); ?>">
@@ -1733,7 +1733,7 @@ include __DIR__ . '/includes/header.php';
                     endif;
                 } catch (PDOException $e) {
                     error_log("Index slider error: " . $e->getMessage());
-                    echo '<div class="slider-item"><img loading="lazy" src="' . base_url_path('/assets/images/logo-icon.png') . '" alt="Smart Mall"></div>';
+                    echo '<div class="slider-item"><img loading="lazy" src="' . base_url_path('/assets/logo-icon.png') . '" alt="Smart Mall"></div>';
                 }
                 ?>
             </div>

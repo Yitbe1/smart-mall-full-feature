@@ -73,7 +73,7 @@ function time_elapsed(string $datetime): string
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Smart Mall">
-    <link rel="apple-touch-icon" href="assets/images/logo-icon.png">
+    <link rel="apple-touch-icon" href="assets/logo-icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <script>
@@ -145,7 +145,7 @@ function time_elapsed(string $datetime): string
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700;800&display=swap"
         rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="512x512" href="<?= $rel ?>assets/images/logo-icon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="<?= $rel ?>assets/logo-icon.png">
     <style>
         :root {
             /* Premium Palette */
@@ -1926,7 +1926,7 @@ function time_elapsed(string $datetime): string
                     <span class="streak streak-2"></span>
                     <span class="streak streak-3"></span>
                 </div>
-                <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
+                <img src="<?= $rel ?>assets/logo-icon.png" alt="Smart Mall Logo Icon"
                     class="preloader-logo-icon">
                 <div class="logo-glow"></div>
             </div>
@@ -2050,7 +2050,7 @@ function time_elapsed(string $datetime): string
 
             <a href="<?= $rel ?>index.php" class="logo-brand" aria-label="Smart Mall home"
                 style="justify-self: center;">
-                <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon" class="logo-brand-icon">
+                <img src="<?= $rel ?>assets/logo-icon.png" alt="Smart Mall Logo Icon" class="logo-brand-icon">
                 <span class="logo-brand-text">Smart Mall<span class="logo-brand-dot">.</span></span>
             </a>
 
@@ -2189,7 +2189,7 @@ function time_elapsed(string $datetime): string
         <div class="mobile-drawer-panel">
             <div class="drawer-header">
                 <a href="<?= $rel ?>index.php" class="logo-brand logo-brand-drawer">
-                    <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
+                    <img src="<?= $rel ?>assets/logo-icon.png" alt="Smart Mall Logo Icon"
                         class="logo-brand-icon">
                     <span class="logo-brand-text">Smart Mall<span class="logo-brand-dot">.</span></span>
                 </a>

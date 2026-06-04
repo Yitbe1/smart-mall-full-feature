@@ -337,7 +337,7 @@ $rel = $rel_path ? str_repeat('../', substr_count($rel_path, '/')) : '';
     <div class="footer-grid">
         <div class="footer-brand-column">
             <a class="footer-brand" href="<?= $rel ?>index.php" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon" style="height: 38px; width: auto; filter: drop-shadow(0 2px 8px rgba(69, 168, 170, 0.4));">
+                <img src="<?= $rel ?>assets/logo-icon.png" alt="Smart Mall Logo Icon" style="height: 38px; width: auto; filter: drop-shadow(0 2px 8px rgba(69, 168, 170, 0.4));">
                 <span style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.75rem; letter-spacing: 0.04em; color: #fff;">Smart Mall<span style="color: #45a8aa;">.</span></span>
             </a>
             <p>Curating the finest in fashion, electronics, and home living. We bring global trends directly to your doorstep with a focus on quality and security.</p>
