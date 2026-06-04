@@ -953,7 +953,7 @@ include __DIR__ . '/includes/header.php';
                 </form>
             </div>
         <?php else: ?>
-            <p class="login-to-review"><a href="<?= BASE_PATH ?>/login.php?redirect=product.php&product_id=<?php echo $product_id; ?>">Login</a> to write a review.</p>
+            <p class="login-to-review"><a href="login.php?redirect=product.php&product_id=<?php echo $product_id; ?>">Login</a> to write a review.</p>
         <?php endif; ?>
     </div>
 </div>

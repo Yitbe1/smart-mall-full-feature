@@ -220,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                     echo '<p><strong>HTTP Code:</strong> ' . htmlspecialchars($httpCode) . '</p>';
                     echo '<p><strong>Curl Error:</strong> ' . htmlspecialchars($curlError ?: 'None') . '</p>';
                     echo '<pre style="background:#f8f9fa; padding:10px; border-radius:4px; overflow:auto;">' . htmlspecialchars($rawResponse) . '</pre>';
-                    echo '<p><a href="' . BASE_PATH . '/checkout.php">← Back to Checkout</a></p>';
+                    echo '<p><a href="checkout.php">← Back to Checkout</a></p>';
                     echo '</div>';
                     exit;
                 }
@@ -757,4 +757,4 @@ include 'includes/header.php';
     </div>
 
 </div>
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

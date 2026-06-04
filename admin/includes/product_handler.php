@@ -68,7 +68,7 @@ function handle_main_image_upload(?array $file, ?string $existing_image, bool $i
                         if ($is_edit && !empty($existing_image) && $image_name !== $existing_image) {
                             $old_path = rtrim($upload_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $existing_image;
                             if (file_exists($old_path)) {
-                                unlink($old_path);
+                                @unlink($old_path);
                             }
                         }
                     }
@@ -157,7 +157,7 @@ function delete_product_file(string $filename, string $upload_dir): void
 
     $path = rtrim($upload_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $filename;
     if (file_exists($path)) {
-        unlink($path);
+        @unlink($path);
     }
 }
 

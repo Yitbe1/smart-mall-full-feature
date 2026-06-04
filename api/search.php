@@ -31,7 +31,7 @@ try {
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Format the image URLs properly before sending to the client
-    $subfolder = BASE_PATH;
+    $subfolder = base_url_path();
     foreach ($results as &$product) {
         if (!empty($product['image']) && strpos($product['image'], 'http') !== 0) {
             $product['image_url'] = $subfolder . '/uploads/' . $product['image'];

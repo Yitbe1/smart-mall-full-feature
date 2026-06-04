@@ -158,8 +158,8 @@ if ($order['payment_status'] === 'pending' && $order['payment_method'] === 'chap
             countdown();
         </script>
         <p style='margin-top:20px;'>
-            <a href='<?= BASE_PATH ?>/order_confirmation.php?order_id=<?php echo $order_id; ?>' style='margin-right:10px; padding:10px 20px; background:#1976d2; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Refresh Now</a>
-            <a href='<?= BASE_PATH ?>/checkout.php' style='padding:10px 20px; background:#666; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Back to Checkout</a>
+            <a href='order_confirmation.php?order_id=<?php echo $order_id; ?>' style='margin-right:10px; padding:10px 20px; background:#1976d2; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Refresh Now</a>
+            <a href='checkout.php' style='padding:10px 20px; background:#666; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Back to Checkout</a>
         </p>
     </div>
 <?php
@@ -175,7 +175,7 @@ if ($order['payment_status'] === 'failed') {
         <h2 style='color:#d32f2f;'>❌ Payment Failed</h2>
         <p>Your payment was not completed. Please try again.</p>
         <p style='margin-top:20px;'>
-            <a href='<?= BASE_PATH ?>/checkout.php' style='padding:10px 20px; background:#d32f2f; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Try Again</a>
+            <a href='checkout.php' style='padding:10px 20px; background:#d32f2f; color:white; text-decoration:none; border-radius:4px; display:inline-block;'>Try Again</a>
         </p>
     </div>
 <?php
@@ -874,9 +874,9 @@ include __DIR__ . '/includes/header.php';
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <a href="<?= BASE_PATH ?>/receipt.php?order_id=<?php echo $order_id; ?>" class="btn-action primary" target="_blank">Download Receipt</a>
-            <a href="<?= BASE_PATH ?>/index.php" class="btn-action secondary">Continue Shopping</a>
-            <a href="<?= BASE_PATH ?>/orders.php" class="btn-action primary">View My Orders</a>
+            <a href="receipt.php?order_id=<?php echo $order_id; ?>" class="btn-action primary" target="_blank">Download Receipt</a>
+            <a href="index.php" class="btn-action secondary">Continue Shopping</a>
+            <a href="orders.php" class="btn-action primary">View My Orders</a>
         </div>
     </div>
 </div>

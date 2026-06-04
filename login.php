@@ -2,19 +2,7 @@
 // User Login — POST is processed BEFORE header.php to allow header() redirects
 $page_title = 'Login - Smart Mall';
 
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-
-$env_file = __DIR__ . '/.env';
-if (file_exists($env_file)) {
-    $env_vars = parse_ini_file($env_file);
-    if ($env_vars) {
-        foreach ($env_vars as $key => $value) {
-            $_ENV[$key] = $value;
-            putenv("$key=$value");
-        }
-    }
-}
-
+require_once __DIR__ . '/config.php';
 require_once 'includes/db.php';
 
 // Already logged in → redirect
@@ -546,6 +534,17 @@ include __DIR__ . '/includes/header.php';
             <div class="auth-divider"><span>or</span></div>
 
             <div style="text-align:center;">
+                <div id="capacitor-google-section" style="display:none;">
+                    <button type="button" class="google-btn" id="capacitor-google-btn" tabindex="-1">
+                        <svg width="20" height="20" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.58l7.97-5.99z" />
+                            <path fill="#34A853" d="M24 48c6.48 0 11.94-2.13 15.92-5.78l-7.73-6c-2.15 1.45-4.92 2.33-8.19 2.33-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.99C6.51 42.62 14.62 48 24 48z" />
+                        </svg>
+                        <span id="capacitor-google-btn-text">Continue with Google</span>
+                    </button>
+                </div>
                 <div id="g_id_onload"
                     data-client_id="1003727523085-vk311f184eqrt95a3ggdq17h2fnqe5bl.apps.googleusercontent.com"
                     data-context="signin"
@@ -553,7 +552,7 @@ include __DIR__ . '/includes/header.php';
                     data-callback="handleGoogleCredential"
                     data-auto_prompt="false">
                 </div>
-                <div class="gsi-container">
+                <div class="gsi-container" id="browser-gsi-container">
                     <button type="button" class="google-btn" tabindex="-1">
                         <svg width="20" height="20" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -574,6 +573,45 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 </div>
             </div>
+            <script>
+            (function() {
+                if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+                    document.getElementById('capacitor-google-section').style.display = '';
+                    document.getElementById('browser-gsi-container').style.display = 'none';
+                    var gsiElem = document.getElementById('browser-gsi-container').querySelector('.g_id_signin');
+                    if (gsiElem) gsiElem.remove();
+                    document.getElementById('capacitor-google-btn').addEventListener('click', async function() {
+                        var btnText = document.getElementById('capacitor-google-btn-text');
+                        btnText.textContent = 'Signing in...';
+                        try {
+                            await Capacitor.Plugins.SocialLogin.initialize({
+                                google: { webClientId: '1003727523085-ff6nuocamjk1mh8r51k6v94tcbsbsql1.apps.googleusercontent.com' }
+                            });
+                            var result = await Capacitor.Plugins.SocialLogin.login({ provider: 'google' });
+                            if (!result || !result.result || !result.result.idToken) {
+                                btnText.textContent = 'Continue with Google';
+                                return;
+                            }
+                            var res = await fetch('google_login.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'credential=' + encodeURIComponent(result.result.idToken)
+                            });
+                            var data = await res.json();
+                            if (data.success) {
+                                window.location.href = data.redirect || 'index.php';
+                            } else {
+                                alert(data.error || 'Google sign-in failed');
+                                btnText.textContent = 'Continue with Google';
+                            }
+                        } catch(e) {
+                            alert('Google sign-in failed. Please try again.');
+                            btnText.textContent = 'Continue with Google';
+                        }
+                    });
+                }
+            })();
+            </script>
         </div>
     </div>
 </div>

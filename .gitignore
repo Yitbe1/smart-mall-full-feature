@@ -12,10 +12,5 @@ _dev/manage_orders.png
 _dev/manage_orders_mobile.png
 _dev/docker/Screenshot*
 _dev/test-results/
-_dev/smartmall-app/android/.gradle/
-_dev/smartmall-app/android/build/
-_dev/smartmall-app/android/capacitor-cordova-android-plugins/.gradle/
-_dev/smartmall-app/android/capacitor-cordova-android-plugins/build/
-_dev/smartmall-app/android/app/build/
-_dev/smartmall-app/android/capacitor/build/
 uploads/product_bulk_*.png
+uploads/app-release.apk

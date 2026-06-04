@@ -2,11 +2,6 @@
 $page_title = 'Verify Email - Smart Mall';
 require_once __DIR__ . '/config.php';
 
-if (isset($_SESSION['user_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
 $message = '';
 $success = false;
 
@@ -34,7 +29,7 @@ if (empty($token)) {
                 $stmt->execute([':id' => $user['user_id']]);
 
                 $success = true;
-                $message = 'Email verified successfully! You can now log in.';
+                $message = 'Email verified successfully!';
             }
         } else {
             $message = 'Invalid or expired verification link. Your email may already be verified.';
@@ -126,13 +121,17 @@ require_once __DIR__ . '/includes/header.php';
     <div class="auth-card">
         <div class="auth-card-header">
             <h1>Email Verification</h1>
-            <p><?php echo $success ? 'Your account is now active' : 'Verification failed'; ?></p>
+            <p><?php echo $success ? (isset($_SESSION['user_id']) ? 'You are now fully verified' : 'Your account is now active') : 'Verification failed'; ?></p>
         </div>
         <div class="auth-card-body">
             <div class="result-box <?php echo $success ? 'success' : 'error'; ?>">
                 <?php echo htmlspecialchars($message); ?>
             </div>
-            <a href="login.php" class="btn-continue">Go to Login →</a>
+            <?php if ($success && isset($_SESSION['user_id'])): ?>
+                <a href="dashboard.php" class="btn-continue">Go to Dashboard →</a>
+            <?php else: ?>
+                <a href="login.php" class="btn-continue">Go to Login →</a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

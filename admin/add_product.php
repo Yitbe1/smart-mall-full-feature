@@ -191,8 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/includes/product_form.php';
-require_once '../includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 
 
 render_product_form($product, $categories_list, $errors, $is_edit, ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) ? $additional_images_arr : null);
-require_once '../includes/footer.php';
+require_once __DIR__ . '/../includes/footer.php';

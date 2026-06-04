@@ -112,7 +112,7 @@ function get_product_image_url(string $image_path): string
     }
 
     // Otherwise, assume it's in the uploads folder
-    $prefix = defined('BASE_PATH') ? BASE_PATH . '/' : '';
+    $prefix = base_url_path() . '/';
     return $prefix . 'uploads/' . $image_path;
 }
 
@@ -136,7 +136,7 @@ function get_product_video_url(string $video_path): string
     }
 
     // Otherwise, assume it's in the uploads folder
-    $prefix = defined('BASE_PATH') ? BASE_PATH . '/' : '';
+    $prefix = base_url_path() . '/';
     return $prefix . 'uploads/' . $video_path;
 }
 

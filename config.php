@@ -96,12 +96,24 @@ if ($subfolder === '/') {
 }
 $base_url = $protocol . $host . $subfolder;
 
-// BASE_PATH — derive from config.php's location, not the requesting script
-$base_path = strtr(str_replace($_SERVER['DOCUMENT_ROOT'] ?? '', '', __DIR__), '\\', '/');
-if ($base_path === '/') { $base_path = ''; }
-$base_path_env = $_ENV['BASE_PATH'] ?? '';
-if ($base_path_env !== '') { $base_path = $base_path_env; }
-define('BASE_PATH', $base_path);
+function base_url_path(string $path = ''): string {
+    static $base = null;
+    if ($base === null) {
+        $env = $_ENV['BASE_PATH'] ?? '';
+        if ($env !== '') {
+            $base = rtrim($env, '/');
+        } elseif (!empty($_SERVER['DOCUMENT_ROOT'])) {
+            $doc_root = strtr(rtrim($_SERVER['DOCUMENT_ROOT'], '/\\'), '\\', '/');
+            $dir = strtr(__DIR__, '\\', '/');
+            $base = str_starts_with($dir, $doc_root . '/')
+                ? rtrim(substr($dir, strlen($doc_root)), '/')
+                : '';
+        } else {
+            $base = '';
+        }
+    }
+    return $base . ($path ? '/' . ltrim($path, '/') : '');
+}
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/currency.php';

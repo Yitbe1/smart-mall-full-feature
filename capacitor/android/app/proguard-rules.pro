@@ -1,0 +1,4 @@
+-keep class com.getcapacitor.** { *; }
+-keep class com.capacitorjs.** { *; }
+-keep class capgo.** { *; }
+-keepattributes *Annotation*, JavascriptInterface, SourceFile, LineNumberTable

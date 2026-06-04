@@ -16,7 +16,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $page_title = isset($page_title) ? $page_title : 'Smart Mall - Your Online Marketplace';
 $cart_count = 0;
 $selected_currency = smartmall_selected_currency();
-$currency_redirect = $_SERVER['REQUEST_URI'] ?? BASE_PATH . '/index.php';
+$currency_redirect = $_SERVER['REQUEST_URI'] ?? base_url_path('/index.php');
+
+// Compute relative path prefix for shared templates (root vs admin depth)
+$rel_path = substr(dirname($_SERVER['SCRIPT_NAME'] ?? ''), strlen(base_url_path()));
+$rel = $rel_path ? str_repeat('../', substr_count($rel_path, '/')) : '';
 
 if (isset($_SESSION['user_id']) && function_exists('getDB')) {
     try {
@@ -80,6 +84,46 @@ function time_elapsed(string $datetime): string
         }
     </script>
     <script>
+        var pendingToken = localStorage.getItem('fcm_token_pending');
+        if (pendingToken) {
+            fetch('/capacitor_push_token.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fcm_token: pendingToken })
+            }).then(function(r){return r.json()}).then(function(d){
+                if (d.success) localStorage.removeItem('fcm_token_pending');
+            });
+        }
+        if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+            (function() {
+                var PushNotifications = Capacitor.Plugins.PushNotifications;
+                PushNotifications.addListener('registration', function(token) {
+                    localStorage.setItem('fcm_token', token.value);
+                    fetch('/capacitor_push_token.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fcm_token: token.value })
+                    }).then(function(r){return r.json()}).then(function(d){
+                        if (!d.success) localStorage.setItem('fcm_token_pending', token.value);
+                        else localStorage.removeItem('fcm_token_pending');
+                    });
+                });
+                PushNotifications.addListener('pushNotificationReceived', function(n) {
+                    // fallback: notification already shown via service worker push event
+                });
+                PushNotifications.addListener('pushNotificationActionPerformed', function(n) {
+                    // fallback: handled by notificationclick in sw.js
+                });
+                PushNotifications.requestPermissions().then(function(result) {
+                    if (result.receive === 'granted') {
+                        PushNotifications.register();
+                    }
+                });
+
+            })();
+        }
+    </script>
+    <script>
         (function() {
             const savedTheme = localStorage.getItem('smartmall-theme');
             if (savedTheme) {
@@ -101,7 +145,7 @@ function time_elapsed(string $datetime): string
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700;800&display=swap"
         rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="512x512" href="<?= BASE_PATH ?>/assets/images/logo-icon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="<?= $rel ?>assets/images/logo-icon.png">
     <style>
         :root {
             /* Premium Palette */
@@ -1882,7 +1926,7 @@ function time_elapsed(string $datetime): string
                     <span class="streak streak-2"></span>
                     <span class="streak streak-3"></span>
                 </div>
-                <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
+                <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
                     class="preloader-logo-icon">
                 <div class="logo-glow"></div>
             </div>
@@ -1909,7 +1953,7 @@ function time_elapsed(string $datetime): string
     </div>
 
     <script>
-        const BASE_PATH = '<?= BASE_PATH ?>';
+        const BASE_PATH = '<?= $rel ?>';
         // Synchronous fast preloader check to prevent screen flash
         try {
             if (sessionStorage.getItem('smartmall-preloaded')) {
@@ -1938,11 +1982,11 @@ function time_elapsed(string $datetime): string
 
             <ul class="nav-links">
                 <li><a class="<?php echo $current_page === 'index.php' ? 'is-active' : ''; ?>"
-                        href="<?= BASE_PATH ?>/index.php">Shop</a></li>
+                        href="<?= $rel ?>index.php">Shop</a></li>
                 <li><a class="<?php echo $current_page === 'orders.php' ? 'is-active' : ''; ?>"
-                        href="<?= BASE_PATH ?>/orders.php">Orders</a></li>
+                        href="<?= $rel ?>orders.php">Orders</a></li>
                 <?php if ($current_page !== 'download.php'): ?>
-                    <li><a href="<?= BASE_PATH ?>/download.php">App</a></li>
+                    <li><a href="<?= $rel ?>download.php">App</a></li>
                 <?php endif; ?>
                 <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
                     <li>
@@ -1979,7 +2023,7 @@ function time_elapsed(string $datetime): string
                                 <?php else: ?>
                                     <div class="notif-list">
                                         <?php foreach ($notifications as $n): ?>
-                                            <a class="notif-item" href="<?= BASE_PATH ?>/<?php echo htmlspecialchars($n['link'] ?? 'admin/dashboard.php'); ?>" data-id="<?php echo $n['id']; ?>">
+                                            <a class="notif-item" href="<?= $rel ?><?php echo htmlspecialchars($n['link'] ?? 'admin/dashboard.php'); ?>" data-id="<?php echo $n['id']; ?>">
                                                 <span class="notif-item-dot"></span>
                                                 <div class="notif-item-content">
                                                     <div class="notif-item-text"><?php echo htmlspecialchars($n['message']); ?></div>
@@ -2004,14 +2048,14 @@ function time_elapsed(string $datetime): string
                 <?php endif; ?>
             </ul>
 
-            <a href="<?= BASE_PATH ?>/index.php" class="logo-brand" aria-label="Smart Mall home"
+            <a href="<?= $rel ?>index.php" class="logo-brand" aria-label="Smart Mall home"
                 style="justify-self: center;">
-                <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo Icon" class="logo-brand-icon">
+                <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon" class="logo-brand-icon">
                 <span class="logo-brand-text">Smart Mall<span class="logo-brand-dot">.</span></span>
             </a>
 
             <div class="nav-actions">
-                <form action="<?= BASE_PATH ?>/index.php#products" method="GET" class="search-bar">
+                <form action="<?= $rel ?>index.php#products" method="GET" class="search-bar">
                     <input type="text" name="q" id="live-search-input" placeholder="Search..." required
                         autocomplete="off">
                     <button type="submit" class="action-btn">
@@ -2024,7 +2068,7 @@ function time_elapsed(string $datetime): string
                     <div id="live-search-results" class="live-search-results"></div>
                 </form>
 
-                <form action="<?= BASE_PATH ?>/set_currency.php" method="POST" class="currency-form"
+                <form action="<?= $rel ?>set_currency.php" method="POST" class="currency-form"
                     aria-label="Display currency">
                     <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($currency_redirect); ?>">
                     <select name="currency" onchange="this.form.submit()" title="Display currency">
@@ -2036,7 +2080,7 @@ function time_elapsed(string $datetime): string
                     </select>
                 </form>
 
-                <a class="action-btn cart-link" href="<?= BASE_PATH ?>/cart.php">
+                <a class="action-btn cart-link" href="<?= $rel ?>cart.php">
                     <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
@@ -2061,7 +2105,7 @@ function time_elapsed(string $datetime): string
                             </div>
                             <div class="dropdown-divider"></div>
                             <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
-                                <a href="<?= BASE_PATH ?>/admin/dashboard.php" class="dropdown-item">
+                                <a href="<?= $rel ?>admin/dashboard.php" class="dropdown-item">
                                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <path
@@ -2071,14 +2115,14 @@ function time_elapsed(string $datetime): string
                                     Admin Panel
                                 </a>
                             <?php endif; ?>
-                            <a href="<?= BASE_PATH ?>/orders.php" class="dropdown-item">
+                            <a href="<?= $rel ?>orders.php" class="dropdown-item">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                                 </svg>
                                 My Orders
                             </a>
-                            <a href="<?= BASE_PATH ?>/wishlist.php" class="dropdown-item">
+                            <a href="<?= $rel ?>wishlist.php" class="dropdown-item">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path
@@ -2087,7 +2131,7 @@ function time_elapsed(string $datetime): string
                                 Wishlist
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a href="<?= BASE_PATH ?>/logout.php" class="dropdown-item" style="color: var(--danger-color);">
+                            <a href="<?= $rel ?>logout.php" class="dropdown-item" style="color: var(--danger-color);">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path
@@ -2097,7 +2141,7 @@ function time_elapsed(string $datetime): string
                                 Logout
                             </a>
                         <?php else: ?>
-                            <a href="<?= BASE_PATH ?>/login.php" class="dropdown-item">
+                            <a href="<?= $rel ?>login.php" class="dropdown-item">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path
@@ -2106,7 +2150,7 @@ function time_elapsed(string $datetime): string
                                 </svg>
                                 Login
                             </a>
-                            <a href="<?= BASE_PATH ?>/register.php" class="dropdown-item">
+                            <a href="<?= $rel ?>register.php" class="dropdown-item">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path
@@ -2144,8 +2188,8 @@ function time_elapsed(string $datetime): string
         <div class="mobile-drawer-backdrop" id="drawer-backdrop"></div>
         <div class="mobile-drawer-panel">
             <div class="drawer-header">
-                <a href="<?= BASE_PATH ?>/index.php" class="logo-brand logo-brand-drawer">
-                    <img src="<?= BASE_PATH ?>/assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
+                <a href="<?= $rel ?>index.php" class="logo-brand logo-brand-drawer">
+                    <img src="<?= $rel ?>assets/images/logo-icon.png" alt="Smart Mall Logo Icon"
                         class="logo-brand-icon">
                     <span class="logo-brand-text">Smart Mall<span class="logo-brand-dot">.</span></span>
                 </a>
@@ -2157,7 +2201,7 @@ function time_elapsed(string $datetime): string
                 </button>
             </div>
             <div class="drawer-search">
-                <form action="<?= BASE_PATH ?>/index.php#products" method="GET" class="drawer-search-form">
+                <form action="<?= $rel ?>index.php#products" method="GET" class="drawer-search-form">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="7.5"></circle>
@@ -2171,7 +2215,7 @@ function time_elapsed(string $datetime): string
                 </form>
             </div>
             <nav class="drawer-nav">
-                <form action="<?= BASE_PATH ?>/set_currency.php" method="POST" class="drawer-currency-form"
+                <form action="<?= $rel ?>set_currency.php" method="POST" class="drawer-currency-form"
                     style="padding:0.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
                     <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($currency_redirect); ?>">
                     <span
@@ -2184,21 +2228,21 @@ function time_elapsed(string $datetime): string
                         <?php endforeach; ?>
                     </select>
                 </form>
-                <a href="<?= BASE_PATH ?>/index.php"
+                <a href="<?= $rel ?>index.php"
                     class="drawer-nav-link <?php echo $current_page === 'index.php' ? 'is-active' : ''; ?>">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
                     </svg>
                     Shop
                 </a>
-                <a href="<?= BASE_PATH ?>/orders.php"
+                <a href="<?= $rel ?>orders.php"
                     class="drawer-nav-link <?php echo $current_page === 'orders.php' ? 'is-active' : ''; ?>">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                     </svg>
                     My Orders
                 </a>
-                <a href="<?= BASE_PATH ?>/wishlist.php"
+                <a href="<?= $rel ?>wishlist.php"
                     class="drawer-nav-link <?php echo $current_page === 'wishlist.php' ? 'is-active' : ''; ?>">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
@@ -2206,7 +2250,7 @@ function time_elapsed(string $datetime): string
                     </svg>
                     Wishlist
                 </a>
-                <a href="<?= BASE_PATH ?>/cart.php" class="drawer-nav-link">
+                <a href="<?= $rel ?>cart.php" class="drawer-nav-link">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
@@ -2214,14 +2258,14 @@ function time_elapsed(string $datetime): string
                     </svg>
                     Cart
                 </a>
-                <a href="<?= BASE_PATH ?>/about.php"
+                <a href="<?= $rel ?>about.php"
                     class="drawer-nav-link <?php echo $current_page === 'about.php' ? 'is-active' : ''; ?>">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     About
                 </a>
-                <a href="<?= BASE_PATH ?>/contact.php"
+                <a href="<?= $rel ?>contact.php"
                     class="drawer-nav-link <?php echo $current_page === 'contact.php' ? 'is-active' : ''; ?>">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
@@ -2231,7 +2275,7 @@ function time_elapsed(string $datetime): string
                     Contact
                 </a>
                 <?php if ($current_page !== 'download.php'): ?>
-                    <a href="<?= BASE_PATH ?>/download.php" class="drawer-nav-link">
+                    <a href="<?= $rel ?>download.php" class="drawer-nav-link">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path
                                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -2246,7 +2290,7 @@ function time_elapsed(string $datetime): string
                             style="color:var(--text-dark);"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></strong>
                     </div>
                     <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
-                        <a href="<?= BASE_PATH ?>/admin/dashboard.php" class="drawer-nav-link">
+                        <a href="<?= $rel ?>admin/dashboard.php" class="drawer-nav-link">
                             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path
                                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
@@ -2254,7 +2298,7 @@ function time_elapsed(string $datetime): string
                             </svg>
                             Admin Panel
                         </a>
-                        <a href="<?= BASE_PATH ?>/admin/dashboard.php" class="drawer-nav-link">
+                        <a href="<?= $rel ?>admin/dashboard.php" class="drawer-nav-link">
                             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"></path>
                             </svg>
@@ -2264,7 +2308,7 @@ function time_elapsed(string $datetime): string
                             <?php endif; ?>
                         </a>
                     <?php endif; ?>
-                    <a href="<?= BASE_PATH ?>/logout.php" class="drawer-nav-link" style="color:var(--danger-color);">
+                    <a href="<?= $rel ?>logout.php" class="drawer-nav-link" style="color:var(--danger-color);">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path
                                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
@@ -2273,7 +2317,7 @@ function time_elapsed(string $datetime): string
                         Logout
                     </a>
                 <?php else: ?>
-                    <a href="<?= BASE_PATH ?>/login.php" class="drawer-nav-link">
+                    <a href="<?= $rel ?>login.php" class="drawer-nav-link">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path
                                 d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
@@ -2281,7 +2325,7 @@ function time_elapsed(string $datetime): string
                         </svg>
                         Login
                     </a>
-                    <a href="<?= BASE_PATH ?>/register.php" class="drawer-nav-link">
+                    <a href="<?= $rel ?>register.php" class="drawer-nav-link">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
                             </path>
@@ -2375,7 +2419,7 @@ function time_elapsed(string $datetime): string
                     item.addEventListener('click', function(e) {
                         const id = this.getAttribute('data-id');
                         if (id) {
-                            navigator.sendBeacon(BASE_PATH + '/mark_notification_read.php', new URLSearchParams({
+                            navigator.sendBeacon(BASE_PATH + 'mark_notification_read.php', new URLSearchParams({
                                 id: id,
                                 csrf_token: csrfToken
                             }));
@@ -2422,7 +2466,7 @@ function time_elapsed(string $datetime): string
             window.markAllRead = function(e) {
                 e.stopPropagation();
                 const t = document.querySelector('.notif-container')?.getAttribute('data-csrf') || '';
-                fetch(BASE_PATH + '/mark_notification_read.php', {
+                fetch(BASE_PATH + 'mark_notification_read.php', {
                     method: 'POST',
                     body: new URLSearchParams({
                         all: '1',
@@ -2480,7 +2524,7 @@ function time_elapsed(string $datetime): string
                             </div>
                         `;
 
-                        const fetchPath = BASE_PATH + '/api/search.php';
+                        const fetchPath = BASE_PATH + 'api/search.php';
 
                         fetch(`${fetchPath}?q=${encodeURIComponent(query)}`)
                             .then(response => response.json())
@@ -2504,7 +2548,7 @@ function time_elapsed(string $datetime): string
                                     const shortDesc = product.description ? (product.description.length > 50 ? esc(product.description.substring(0, 50)) + '...' : esc(product.description)) : '';
 
                                     html += `
-                                        <a href="<?= BASE_PATH ?>/product.php?product_id=${esc(product.product_id)}" class="live-search-item">
+                                        <a href="<?= $rel ?>product.php?product_id=${esc(product.product_id)}" class="live-search-item">
                                             ${imgTag}
                                             <div class="live-search-item-info">
                                                 <span class="live-search-item-title">${esc(product.name)}</span>
@@ -2516,7 +2560,7 @@ function time_elapsed(string $datetime): string
                                 });
 
                                 html += `
-                                    <a href="<?= BASE_PATH ?>/index.php?q=${encodeURIComponent(query)}#products" class="live-search-item" style="justify-content: center; color: var(--primary-color); font-weight: bold; background: var(--bg-light);">
+                                    <a href="<?= $rel ?>index.php?q=${encodeURIComponent(query)}#products" class="live-search-item" style="justify-content: center; color: var(--primary-color); font-weight: bold; background: var(--bg-light);">
                                         View all results for "${query}"
                                     </a>
                                 `;
